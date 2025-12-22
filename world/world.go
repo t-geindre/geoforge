@@ -16,23 +16,25 @@ type World struct {
 	frame     uint64
 	noise     noise.Noise
 	queue     chan *Chunk
+	apron     float64
 }
 
-func NewWorld(chunkSize float64, margin, maxChunks int, noise noise.Noise) *World {
+func NewWorld(chunkSize, apron float64, margin, maxChunks int, noise noise.Noise) *World {
+	ws := runtime.NumCPU()
+	if ws > 4 {
+		ws = ws / 2
+	} else if ws < 1 {
+		ws = 1
+	}
+
 	w := &World{
 		chunkSize: chunkSize,
 		margin:    float64(margin) * chunkSize,
 		maxChunks: maxChunks,
 		chunks:    make(map[ChunkId]*Chunk),
 		noise:     noise,
-		queue:     make(chan *Chunk, maxChunks),
-	}
-
-	ws := runtime.NumCPU()
-	if ws > 4 {
-		ws = ws / 2
-	} else if ws < 1 {
-		ws = 1
+		queue:     make(chan *Chunk, ws*2),
+		apron:     apron,
 	}
 
 	for i := 0; i < ws; i++ {
@@ -64,6 +66,10 @@ func (w *World) Chunks() map[ChunkId]*Chunk {
 
 func (w *World) ChunkSize() float64 {
 	return w.chunkSize
+}
+
+func (w *World) Apron() float64 {
+	return w.apron
 }
 
 func (w *World) populate() {
@@ -116,22 +122,35 @@ func (w *World) worker(queue chan *Chunk) {
 		}
 
 		c.SetState(ChunkStateGenerating)
-		hm := make([]byte, int(4*w.chunkSize*w.chunkSize))
-		for y := 0; y < int(w.chunkSize); y++ {
-			row := y * int(w.chunkSize) * 4
-			for x := 0; x < int(w.chunkSize); x++ {
+
+		N := int(w.chunkSize)
+		A := int(w.apron)
+		W := N + 2*A // texture width/height with apron
+
+		hm := make([]byte, 4*W*W)
+
+		baseX := int(c.Id().X) * N
+		baseY := int(c.Id().Y) * N
+
+		for y := 0; y < W; y++ {
+			wy := baseY + (y - A)
+			row := y * W * 4
+			for x := 0; x < W; x++ {
+				wx := baseX + (x - A)
+
+				v := byte(w.noise.Eval(float64(wx)*0.5, float64(wy)*0.5) * 255)
+
 				idx := row + x*4
-				wx := float64(c.Id().X)*w.chunkSize + float64(x)
-				wy := float64(c.Id().Y)*w.chunkSize + float64(y)
-				v := byte(w.noise.Eval(wx*.5, wy*.5) * 255)
-				hm[idx], hm[idx+1], hm[idx+2] = v, v, v
+				hm[idx+0] = v
+				hm[idx+1] = v
+				hm[idx+2] = v
 				hm[idx+3] = 255
 			}
 		}
 
 		hmImg := c.GetLayer(LayerHeightMap)
-		if hmImg == nil {
-			hmImg = ebiten.NewImage(int(w.chunkSize), int(w.chunkSize))
+		if hmImg == nil || hmImg.Bounds().Dx() != W || hmImg.Bounds().Dy() != W {
+			hmImg = ebiten.NewImage(W, W)
 			c.SetLayer(LayerHeightMap, hmImg)
 		}
 		hmImg.WritePixels(hm)

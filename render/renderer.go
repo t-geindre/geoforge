@@ -8,6 +8,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -54,11 +55,24 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 		if c.Is(world.ChunkStateReady) {
 			hm := c.GetLayer(world.LayerHeightMap)
 			if hm != nil {
+				bds := hm.Bounds()
 				op := &ebiten.DrawRectShaderOptions{}
 				op.Images = [4]*ebiten.Image{hm}
+				originX := float32(sx - w.Apron()*z)
+				originY := float32(sy - w.Apron()*z)
+
+				op.Uniforms = map[string]any{
+					"Apron":     float32(w.Apron()),
+					"ChunkSize": float32(w.ChunkSize()),
+					"Zoom":      float32(z),
+					"Origin":    []float32{originX, originY},
+				}
 				op.GeoM.Scale(z, z)
-				op.GeoM.Translate(sx, sy)
-				dst.DrawRectShader(int(csWorld), int(csWorld), r.shader, op)
+				op.GeoM.Translate(
+					sx-w.Apron()*z,
+					sy-w.Apron()*z,
+				)
+				dst.DrawRectShader(bds.Dx(), bds.Dy(), r.shader, op)
 
 				r.drawn++
 				continue
@@ -66,7 +80,10 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 		}
 
 		fill := debugChunkColor(c.Id(), 0x80)
-		vector.FillRect(dst, float32(sx), float32(sy), float32(csScreen), float32(csScreen), fill, false)
+		vector.StrokeRect(dst, float32(sx), float32(sy), float32(csScreen-1), float32(csScreen-1), 1, fill, false)
+		vector.StrokeLine(dst, float32(sx), float32(sy), float32(sx+csScreen), float32(sy+csScreen), 1, fill, false)
+		vector.StrokeLine(dst, float32(sx+csScreen), float32(sy), float32(sx), float32(sy+csScreen), 1, fill, false)
+		ebitenutil.DebugPrintAt(dst, c.Id().String(), int(sx+2), int(sy+2))
 
 		r.drawn++
 	}
