@@ -1,20 +1,35 @@
 package world
 
 import (
+	"sync"
+
 	"github.com/hajimehoshi/ebiten/v2"
+)
+
+const (
+	ChunkStateDirty = iota
+	ChunkStateQueued
+	ChunkStateGenerating
+	ChunkStateReady
+	ChunkStateEvicted
+)
+
+const (
+	LayerHeightMap = iota
 )
 
 type Chunk struct {
 	id       ChunkId
-	dirty    bool
+	state    int
 	layers   map[int]*ebiten.Image
 	lastUsed uint64
+	mutex    sync.Mutex
 }
 
 func NewChunk(id ChunkId) *Chunk {
 	return &Chunk{
 		id:     id,
-		dirty:  true,
+		state:  ChunkStateDirty,
 		layers: make(map[int]*ebiten.Image),
 	}
 }
@@ -31,16 +46,20 @@ func (c *Chunk) GetLayer(l int) *ebiten.Image {
 	return c.layers[l]
 }
 
-func (c *Chunk) MarkDirty() {
-	c.dirty = true
+// SetState sets the state of the chunk in a thread-safe manner.
+func (c *Chunk) SetState(state int) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	c.state = state
 }
 
-func (c *Chunk) ClearDirty() {
-	c.dirty = false
-}
+// Is checks if the chunk is in the given state in a thread-safe manner.
+func (c *Chunk) Is(state int) bool {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 
-func (c *Chunk) IsDirty() bool {
-	return c.dirty
+	return c.state == state
 }
 
 func (c *Chunk) SetLastUsed(frame uint64) {
