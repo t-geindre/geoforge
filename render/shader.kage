@@ -7,9 +7,10 @@ var Apron float
 var ChunkSize float
 var Zoom float
 var Origin vec2
+var LightPos vec2   // position écran de la lumière
 
 func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
-    // Local relative to chunk
+    // --- local coords in chunk texture space ---
     local := (dstPos.xy - Origin) / Zoom
 
     a := Apron
@@ -17,44 +18,93 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
 
     // Skip apron
     if local.x < a || local.y < a || local.x >= a+n || local.y >= a+n {
-        return vec4(0.0) // transparent
+        return vec4(0.0)
     }
 
-    // height [0..1]
-    h := imageSrc0UnsafeAt(srcPos).r
+    // --- height sampling ---
+    p := srcPos
+    h := imageSrc0UnsafeAt(p).r
 
-    // --- océan ---
+    // --- normal from heightmap ---
+    eps := 1.0
+    hx1 := imageSrc0UnsafeAt(p + vec2(eps, 0.0)).r
+    hx0 := imageSrc0UnsafeAt(p - vec2(eps, 0.0)).r
+    hy1 := imageSrc0UnsafeAt(p + vec2(0.0, eps)).r
+    hy0 := imageSrc0UnsafeAt(p - vec2(0.0, eps)).r
+
+    dx := (hx1 - hx0) * 0.5
+    dy := (hy1 - hy0) * 0.5
+
+    normalStrength := 70.0
+    N := normalize(vec3(-dx*normalStrength, -dy*normalStrength, 1.0))
+
+    // --- lighting vectors ---
+    // Fragment position in screen space
+    fragPos := dstPos.xy
+
+    // Light direction from fragment to light
+    L := normalize(vec3(LightPos - fragPos, 200.0))
+    V := vec3(0.0, 0.0, 1.0) // camera looks straight down
+
+    ndotl := clamp(dot(N, L), 0.0, 1.0)
+
+    ambient := 0.35
+    diffuse := ambient + (1.0 - ambient) * ndotl
+
+    // --- biome color ---
+    var base vec3
+
+    // ===== WATER =====
     if h < SeaLevel {
-        // plus clair près des côtes
         t := h / SeaLevel
         deep := vec3(0.02, 0.08, 0.25)
         shallow := vec3(0.10, 0.35, 0.60)
-        return vec4(mix(deep, shallow, t), 1.0)
+        base = mix(deep, shallow, t)
+
+        // Flatten normal for water
+        Nw := vec3(0.0, 0.0, 1.0)
+
+        // Specular reflection (Blinn–Phong)
+        H := normalize(L + V)
+        spec := pow(clamp(dot(Nw, H), 0.0, 1.0), 80.0)
+
+        // Stronger spec near coast
+        coast := smoothstep(0.7, 1.0, t)
+
+        // Water lighting is flatter
+        waterDiffuse := 0.55 + 0.45 * clamp(dot(Nw, L), 0.0, 1.0)
+
+        colorOut := base * waterDiffuse
+        colorOut += vec3(1.0) * spec * coast * 0.35
+
+        return vec4(clamp(colorOut, 0.0, 1.0), 1.0)
     }
 
-    // --- plage ---
-    if h < SeaLevel+0.03 {
-        return vec4(0.85, 0.80, 0.60, 1.0)
+    // ===== BEACH =====
+    if h < SeaLevel + 0.03 {
+        base = vec3(0.85, 0.80, 0.60)
+        diffuse = 0.45 + 0.55 * ndotl
+        return vec4(base * diffuse, 1.0)
     }
 
-    // normalisation terrestre
+    // ===== LAND =====
     t := (h - SeaLevel) / (1.0 - SeaLevel)
 
-    // --- plaines ---
     if t < 0.35 {
-        return vec4(0.15, 0.55, 0.20, 1.0)
+        base = vec3(0.15, 0.55, 0.20) // plains
+    } else if t < 0.60 {
+        base = vec3(0.35, 0.45, 0.25) // hills
+    } else if t < 0.85 {
+        base = vec3(0.55, 0.55, 0.55) // mountains
+    } else {
+        base = vec3(0.95, 0.95, 0.95) // snow
+        diffuse = 0.45 + 0.65 * ndotl
     }
 
-    // --- collines ---
-    if t < 0.60 {
-        return vec4(0.35, 0.45, 0.25, 1.0)
-    }
+    // cheap AO from slope
+    slope := clamp((abs(dx) + abs(dy)) * normalStrength * 0.35, 0.0, 1.0)
+    ao := 1.0 - 0.25 * slope
 
-    // --- montagnes ---
-    if t < 0.85 {
-        return vec4(0.55, 0.55, 0.55, 1.0)
-    }
-
-    // --- neige ---
-    return vec4(0.95, 0.95, 0.95, 1.0)
+    col := base * diffuse * ao
+    return vec4(clamp(col, 0.0, 1.0), 1.0)
 }

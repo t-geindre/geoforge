@@ -4,7 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-const minZoom = 0.3
+const minZoom = 0.1
 const maxZoom = 10.0
 
 type WheelZoom struct {

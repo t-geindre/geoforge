@@ -61,11 +61,18 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 				originX := float32(sx - w.Apron()*z)
 				originY := float32(sy - w.Apron()*z)
 
+				x, y := ebiten.CursorPosition()
+				light := [2]float32{
+					float32(x),
+					float32(y),
+				}
+
 				op.Uniforms = map[string]any{
 					"Apron":     float32(w.Apron()),
 					"ChunkSize": float32(w.ChunkSize()),
 					"Zoom":      float32(z),
 					"Origin":    []float32{originX, originY},
+					"LightPos":  light,
 				}
 				op.GeoM.Scale(z, z)
 				op.GeoM.Translate(
