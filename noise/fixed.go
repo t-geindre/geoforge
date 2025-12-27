@@ -13,7 +13,9 @@ func NewFixed() Noise {
 			val = v
 		}))
 
-	return newNoise(ps, func(_, _ float32) float32 {
-		return val
+	return newNoise(ps, func(dst []float32, size int, x0, y0 float32) {
+		for i := 0; i < size*size; i++ {
+			dst[i] = val // Todo SIMD?
+		}
 	})
 }

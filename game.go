@@ -26,7 +26,7 @@ func NewGame() *Game {
 
 	return &Game{
 		cam:      cam.NewWheelZoom(cam.NewMousePan(cam.NewCamera())),
-		world:    world.NewWorld(256, 10, 1, 4096, noise.NewFixed()),
+		world:    world.NewWorld(256, 10, 1, 4096, noise.NewWhite()),
 		renderer: render.NewRenderer(),
 	}
 }

@@ -55,7 +55,7 @@ func (w *World) Update(rect geo.Rect) {
 
 	for y := rect.MinY; y < rect.MaxY; y += w.chunkSize {
 		for x := rect.MinX; x < rect.MaxX; x += w.chunkSize {
-			id := NewChunkId(int64(x/w.chunkSize), int64(y/w.chunkSize))
+			id := NewChunkId(int(x/w.chunkSize), int(y/w.chunkSize))
 			w.ensure(id)
 		}
 	}
@@ -127,7 +127,8 @@ func (w *World) worker(queue chan *Chunk) {
 	A := int(w.apron)
 	W := N + 2*A // texture width/height with apron
 
-	hm := make([]byte, 4*W*W)
+	hm := make([]float32, W*W) // heightmap raw
+	hmp := make([]byte, 4*W*W) // heightmap RGBA
 
 	for c := range queue {
 		if !c.Is(ChunkStateQueued) {
@@ -136,25 +137,18 @@ func (w *World) worker(queue chan *Chunk) {
 
 		c.SetState(ChunkStateGenerating)
 
-		baseX := int(c.Id().X) * N
-		baseY := int(c.Id().Y) * N
+		baseX := c.Id().X*N - A
+		baseY := c.Id().Y*N - A
+		w.noise.Fill(hm, W, float32(baseX), float32(baseY))
 
-		for y := 0; y < W; y++ {
-			wy := baseY + (y - A)
-			row := y * W * 4
-			for x := 0; x < W; x++ {
-				wx := baseX + (x - A)
-
-				n := w.noise.Get(float32(wx)*0.5, float32(wy)*0.5)
-				n = (n + 1) / 2 // normalize to 0..1
-				v := byte(n * 255)
-
-				idx := row + x*4
-				hm[idx+0] = v
-				hm[idx+1] = v
-				hm[idx+2] = v
-				hm[idx+3] = 255
-			}
+		for i := range hm {
+			n := hm[i]
+			n = (n + 1) / 2 // normalize to 0..1
+			v := byte(n * 255)
+			hmp[i*4+0] = v
+			hmp[i*4+1] = v
+			hmp[i*4+2] = v
+			hmp[i*4+3] = 255
 		}
 
 		hmImg := c.GetLayer(LayerHeightMap)
@@ -162,7 +156,7 @@ func (w *World) worker(queue chan *Chunk) {
 			hmImg = ebiten.NewImage(W, W)
 			c.SetLayer(LayerHeightMap, hmImg)
 		}
-		hmImg.WritePixels(hm)
+		hmImg.WritePixels(hmp)
 
 		c.SetState(ChunkStateReady)
 	}

@@ -11,8 +11,6 @@ var LightPos vec2
 var Ambient float
 
 func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
-
-//return imageSrc0UnsafeAt(srcPos)
     // --- local coords in chunk texture space ---
     local := (dstPos.xy - Origin) / Zoom
 
@@ -23,6 +21,10 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     if local.x < a || local.y < a || local.x >= a+n || local.y >= a+n {
         return vec4(0.0)
     }
+
+return imageSrc0UnsafeAt(srcPos)
+
+
 
     // --- height sampling ---
     p := srcPos

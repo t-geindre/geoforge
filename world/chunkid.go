@@ -3,10 +3,10 @@ package world
 import "fmt"
 
 type ChunkId struct {
-	X, Y int64
+	X, Y int
 }
 
-func NewChunkId(x, y int64) ChunkId {
+func NewChunkId(x, y int) ChunkId {
 	return ChunkId{X: x, Y: y}
 }
 

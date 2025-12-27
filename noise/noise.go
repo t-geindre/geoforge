@@ -5,24 +5,26 @@ import (
 )
 
 type Noise interface {
-	Get(x, y float32) float32
+	Fill(dst []float32, size int, x0, y0 float32)
 	Params() preset.ParamSet
 }
 
+type fillFunc func(dst []float32, size int, x0, y0 float32)
+
 type noise struct {
-	fn     func(x, y float32) float32
+	fn     fillFunc
 	params preset.ParamSet
 }
 
-func newNoise(ps preset.ParamSet, fn func(x, y float32) float32) Noise {
+func newNoise(ps preset.ParamSet, fn fillFunc) Noise {
 	return &noise{
 		fn:     fn,
 		params: ps,
 	}
 }
 
-func (n *noise) Get(x, y float32) float32 {
-	return n.fn(x, y)
+func (n *noise) Fill(dst []float32, size int, x0, y0 float32) {
+	n.fn(dst, size, x0, y0)
 }
 
 func (n *noise) Params() preset.ParamSet {
