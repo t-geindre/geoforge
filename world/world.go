@@ -45,6 +45,10 @@ func NewWorld(chunkSize, apron float64, margin, maxChunks int, noise noise.Noise
 }
 
 func (w *World) Update(rect geo.Rect) {
+	if w.noise.Params().HasChanged() {
+		w.MarkDirty()
+	}
+
 	w.frame++
 
 	rect = rect.Expand(w.margin).SnapOut(w.chunkSize)
@@ -56,7 +60,7 @@ func (w *World) Update(rect geo.Rect) {
 		}
 	}
 
-	w.evict()
+	w.evict(rect)
 	w.populate()
 }
 
@@ -70,6 +74,16 @@ func (w *World) ChunkSize() float64 {
 
 func (w *World) Apron() float64 {
 	return w.apron
+}
+
+func (w *World) MarkDirty() {
+	for _, c := range w.chunks {
+		c.SetState(ChunkStateDirty)
+	}
+}
+
+func (w *World) Noise() noise.Noise {
+	return w.noise
 }
 
 func (w *World) populate() {
@@ -95,39 +109,32 @@ func (w *World) ensure(id ChunkId) {
 	c.SetLastUsed(w.frame)
 }
 
-func (w *World) evict() {
-	for len(w.chunks) > w.maxChunks {
-		var oldestID ChunkId
-		var oldest *Chunk
+func (w *World) evict(rect geo.Rect) {
+	for id, c := range w.chunks {
+		cx := float64(id.X) * w.chunkSize
+		cy := float64(id.Y) * w.chunkSize
 
-		for id, ch := range w.chunks {
-			if oldest == nil || ch.LastUsed() < oldest.LastUsed() {
-				oldest = ch
-				oldestID = id
-			}
+		cRect := geo.NewRect(cx, cy, cx+w.chunkSize, cy+w.chunkSize)
+		if !rect.Intersects(cRect) {
+			c.SetState(ChunkStateEvicted)
+			delete(w.chunks, id)
 		}
-
-		if oldest == nil {
-			return
-		}
-		oldest.SetState(ChunkStateEvicted)
-		delete(w.chunks, oldestID)
 	}
 }
 
 func (w *World) worker(queue chan *Chunk) {
+	N := int(w.chunkSize)
+	A := int(w.apron)
+	W := N + 2*A // texture width/height with apron
+
+	hm := make([]byte, 4*W*W)
+
 	for c := range queue {
 		if !c.Is(ChunkStateQueued) {
 			continue
 		}
 
 		c.SetState(ChunkStateGenerating)
-
-		N := int(w.chunkSize)
-		A := int(w.apron)
-		W := N + 2*A // texture width/height with apron
-
-		hm := make([]byte, 4*W*W)
 
 		baseX := int(c.Id().X) * N
 		baseY := int(c.Id().Y) * N
@@ -138,7 +145,9 @@ func (w *World) worker(queue chan *Chunk) {
 			for x := 0; x < W; x++ {
 				wx := baseX + (x - A)
 
-				v := byte(w.noise.Eval(float64(wx)*0.5, float64(wy)*0.5) * 255)
+				n := w.noise.Get(float32(wx)*0.5, float32(wy)*0.5)
+				n = (n + 1) / 2 // normalize to 0..1
+				v := byte(n * 255)
 
 				idx := row + x*4
 				hm[idx+0] = v

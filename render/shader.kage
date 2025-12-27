@@ -7,9 +7,12 @@ var Apron float
 var ChunkSize float
 var Zoom float
 var Origin vec2
-var LightPos vec2   // position écran de la lumière
+var LightPos vec2
+var Ambient float
 
 func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
+
+//return imageSrc0UnsafeAt(srcPos)
     // --- local coords in chunk texture space ---
     local := (dstPos.xy - Origin) / Zoom
 
@@ -48,7 +51,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
 
     ndotl := clamp(dot(N, L), 0.0, 1.0)
 
-    ambient := 0.35
+    ambient := Ambient
     diffuse := ambient + (1.0 - ambient) * ndotl
 
     // --- biome color ---

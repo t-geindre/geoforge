@@ -16,8 +16,9 @@ import (
 var Shader []byte
 
 type Renderer struct {
-	drawn  int
-	shader *ebiten.Shader
+	drawn   int
+	shader  *ebiten.Shader
+	ambient float32
 }
 
 func NewRenderer() *Renderer {
@@ -27,7 +28,8 @@ func NewRenderer() *Renderer {
 	}
 
 	return &Renderer{
-		shader: shd,
+		shader:  shd,
+		ambient: 0.35,
 	}
 }
 
@@ -52,38 +54,38 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 		}
 
 		sx, sy := cam.WorldToScreen(wx, wy)
-		if c.Is(world.ChunkStateReady) {
-			hm := c.GetLayer(world.LayerHeightMap)
-			if hm != nil {
-				bds := hm.Bounds()
-				op := &ebiten.DrawRectShaderOptions{}
-				op.Images = [4]*ebiten.Image{hm}
-				originX := float32(sx - w.Apron()*z)
-				originY := float32(sy - w.Apron()*z)
+		hm := c.GetLayer(world.LayerHeightMap)
 
-				x, y := ebiten.CursorPosition()
-				light := [2]float32{
-					float32(x),
-					float32(y),
-				}
+		if hm != nil {
+			bds := hm.Bounds()
+			op := &ebiten.DrawRectShaderOptions{}
+			op.Images = [4]*ebiten.Image{hm}
+			originX := float32(sx - w.Apron()*z)
+			originY := float32(sy - w.Apron()*z)
 
-				op.Uniforms = map[string]any{
-					"Apron":     float32(w.Apron()),
-					"ChunkSize": float32(w.ChunkSize()),
-					"Zoom":      float32(z),
-					"Origin":    []float32{originX, originY},
-					"LightPos":  light,
-				}
-				op.GeoM.Scale(z, z)
-				op.GeoM.Translate(
-					sx-w.Apron()*z,
-					sy-w.Apron()*z,
-				)
-				dst.DrawRectShader(bds.Dx(), bds.Dy(), r.shader, op)
-
-				r.drawn++
-				continue
+			x, y := ebiten.CursorPosition()
+			light := [2]float32{
+				float32(x),
+				float32(y),
 			}
+
+			op.Uniforms = map[string]any{
+				"Apron":     float32(w.Apron()),
+				"ChunkSize": float32(w.ChunkSize()),
+				"Zoom":      float32(z),
+				"Origin":    []float32{originX, originY},
+				"LightPos":  light,
+				"Ambient":   r.ambient,
+			}
+			op.GeoM.Scale(z, z)
+			op.GeoM.Translate(
+				sx-w.Apron()*z,
+				sy-w.Apron()*z,
+			)
+			dst.DrawRectShader(bds.Dx(), bds.Dy(), r.shader, op)
+
+			r.drawn++
+			continue
 		}
 
 		fill := debugChunkColor(c.Id(), 0x80)

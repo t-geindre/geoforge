@@ -1,6 +1,8 @@
 package cam
 
-import "geoforge/geo"
+import (
+	"geoforge/geo"
+)
 
 type Camera interface {
 	SetViewport(w, h int)
@@ -8,9 +10,11 @@ type Camera interface {
 	WorldToScreen(wx, wy float64) (sx, sy float64)
 	ScreenToWorld(sx, sy float64) (wx, wy float64)
 	Move(dx, dy float64)
+	Position() (x, y float64)
 	ZoomAt(factor float64, screenX, screenY float64)
 	Zoom() float64
 	Update()
+	Reset()
 }
 
 type camera struct {
@@ -39,6 +43,10 @@ func (c *camera) WorldRect() geo.Rect {
 	halfH := float64(c.h) * 0.5 / c.zoom
 
 	return geo.NewRect(c.x-halfW, c.y-halfH, c.x+halfW, c.y+halfH)
+}
+
+func (c *camera) Position() (x, y float64) {
+	return c.x, c.y
 }
 
 func (c *camera) WorldToScreen(wx, wy float64) (sx, sy float64) {
@@ -77,3 +85,9 @@ func (c *camera) Zoom() float64 {
 }
 
 func (c *camera) Update() {}
+
+func (c *camera) Reset() {
+	c.x = 0
+	c.y = 0
+	c.zoom = 1
+}

@@ -39,10 +39,16 @@ func (c *Chunk) Id() ChunkId {
 }
 
 func (c *Chunk) SetLayer(l int, img *ebiten.Image) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	c.layers[l] = img
 }
 
 func (c *Chunk) GetLayer(l int) *ebiten.Image {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	return c.layers[l]
 }
 
