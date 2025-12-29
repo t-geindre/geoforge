@@ -5,8 +5,8 @@ import "geoforge/preset"
 func NewFixed() Noise {
 	var val float32
 
-	ps := preset.NewParamSet()
-	ps = append(ps, preset.NewVariable(
+	ps := preset.NewAnonymousParamSet()
+	ps.Append(preset.NewVariable(
 		ParamFixedValue, ParamFixedValueLabel,
 		0, -1, 1, .001, 3,
 		func(v float32) {

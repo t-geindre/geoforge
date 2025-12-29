@@ -10,8 +10,10 @@ type Camera interface {
 	WorldToScreen(wx, wy float64) (sx, sy float64)
 	ScreenToWorld(sx, sy float64) (wx, wy float64)
 	Move(dx, dy float64)
+	MoveTo(x, y float64)
 	Position() (x, y float64)
 	ZoomAt(factor float64, screenX, screenY float64)
+	SetZoom(zoom float64)
 	Zoom() float64
 	Update()
 	Reset()
@@ -66,6 +68,11 @@ func (c *camera) Move(dx, dy float64) {
 	c.y += dy
 }
 
+func (c *camera) MoveTo(x, y float64) {
+	c.x = x
+	c.y = y
+}
+
 func (c *camera) ZoomAt(factor float64, screenX, screenY float64) {
 	if factor <= 0 {
 		return
@@ -78,6 +85,13 @@ func (c *camera) ZoomAt(factor float64, screenX, screenY float64) {
 	// Center the camera to keep the point under the cursor fixed
 	c.x += wx - wx2
 	c.y += wy - wy2
+}
+
+func (c *camera) SetZoom(zoom float64) {
+	if zoom <= 0 {
+		return
+	}
+	c.zoom = zoom
 }
 
 func (c *camera) Zoom() float64 {

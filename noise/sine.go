@@ -13,51 +13,51 @@ func NewSine() Noise {
 	var warpFreq, warpAmount float64
 	var warpOctaves int
 
-	ps := preset.NewParamSet()
+	ps := preset.NewAnonymousParamSet()
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamFrequency, ParamFrequencyLabel,
 		.0002, .0002, .1, .0001, 4,
 		func(v float32) { freq = float64(v) },
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamGain, ParamGainLabel,
 		1, -1, 1, .01, 4,
 		func(v float32) { gain = float64(v) },
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamOctaves, "Octaves",
 		1, 1, 12, 1, 0,
 		func(v float32) { octaves = int(v) },
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamLacunarity, ParamLacunarityLabel,
 		0, 1, 4, .01, 2,
 		func(v float32) { lacunarity = float64(v) },
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamPersistence, ParamPersistenceLabel,
 		0, 0, 1, .01, 2,
 		func(v float32) { persistence = float64(v) },
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamWarpFreq, ParamWarpFreqLabel,
 		0, .00001, .1, .00001, 5,
 		func(v float32) { warpFreq = float64(v) },
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamWarpAmount, ParamWarpAmountLabel,
 		0, 0, 1000, 1, 0,
 		func(v float32) { warpAmount = float64(v) },
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamWarpOctaves, ParamWarpOctavesLabel,
 		1, 1, 8, 1, 0,
 		func(v float32) { warpOctaves = int(v) },

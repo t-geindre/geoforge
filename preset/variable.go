@@ -1,5 +1,9 @@
 package preset
 
+type Numeric interface {
+	~int | ~float32
+}
+
 type Variable[T Numeric] interface {
 	Param[T]
 	Min() T

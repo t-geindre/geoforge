@@ -22,7 +22,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
         return vec4(0.0)
     }
 
-return imageSrc0UnsafeAt(srcPos)
+//return imageSrc0UnsafeAt(srcPos)
 
 
 

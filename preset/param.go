@@ -1,9 +1,5 @@
 package preset
 
-type Numeric interface {
-	~int | ~float32
-}
-
 type ParamId int
 
 type ParamGeneric interface {
@@ -12,13 +8,13 @@ type ParamGeneric interface {
 	HasChanged() bool
 }
 
-type Param[T Numeric] interface {
+type Param[T comparable] interface {
 	ParamGeneric
 	Val() T
 	SetVal(v T)
 }
 
-type param[T Numeric] struct {
+type param[T comparable] struct {
 	id         ParamId
 	label      string
 	val        T
@@ -26,7 +22,7 @@ type param[T Numeric] struct {
 	onChange   func(T)
 }
 
-func NewParam[T Numeric](id ParamId, label string, val T, onChange func(T)) Param[T] {
+func NewParam[T comparable](id ParamId, label string, val T, onChange func(T)) Param[T] {
 	if onChange == nil {
 		onChange = func(T) {}
 	}

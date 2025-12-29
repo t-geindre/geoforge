@@ -82,10 +82,6 @@ func (w *World) MarkDirty() {
 	}
 }
 
-func (w *World) Noise() noise.Noise {
-	return w.noise
-}
-
 func (w *World) populate() {
 	for _, c := range w.chunks {
 		if c.Is(ChunkStateDirty) {
@@ -93,7 +89,8 @@ func (w *World) populate() {
 			case w.queue <- c:
 				c.SetState(ChunkStateQueued)
 			default:
-				// queue is full
+				// queue is full, give up for now
+				return
 			}
 		}
 	}

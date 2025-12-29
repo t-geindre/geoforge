@@ -26,9 +26,9 @@ func NewWhite() Noise {
 	var gain float32
 	var seed uint32
 
-	ps := preset.NewParamSet()
+	ps := preset.NewAnonymousParamSet()
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamSeed, ParamSeedLabel,
 		0, 0, 100000, 1, 0,
 		func(v float32) {
@@ -36,7 +36,7 @@ func NewWhite() Noise {
 		},
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamFrequency, ParamFrequencyLabel,
 		0.05, 0.001, 1.0, 0.001, 4,
 		func(v float32) {
@@ -44,7 +44,7 @@ func NewWhite() Noise {
 		},
 	))
 
-	ps = append(ps, preset.NewVariable(
+	ps.Append(preset.NewVariable(
 		ParamGain, ParamGainLabel,
 		1, -1, 1, 0.01, 3,
 		func(v float32) {
