@@ -44,7 +44,7 @@ func DefaultGraphStyle() GraphStyle {
 		BackgroundColor: colornames.Black,
 		Background:      true,
 
-		Height: 100,
+		Height: 50,
 	}
 }
 

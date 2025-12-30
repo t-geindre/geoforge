@@ -28,6 +28,8 @@ func (p *paramSet) handle(ctx *debugui.Context, pms []preset.ParamGeneric) {
 	ctx.Loop(len(pms), func(i int) {
 		pm := pms[i]
 
+		ctx.SetGridLayout([]int{100, -1}, nil)
+
 		switch tp := pm.(type) {
 		case preset.Variable[int]:
 			ctx.Text(pm.Label())
@@ -49,6 +51,21 @@ func (p *paramSet) handle(ctx *debugui.Context, pms []preset.ParamGeneric) {
 			ctx.TextField(&v).On(func() {
 				tp.SetVal(v)
 			})
+
+		case preset.Param[bool]:
+			ctx.Text(pm.Label())
+			v := tp.Val()
+			ctx.Checkbox(&v, "").On(func() {
+				tp.SetVal(v)
+			})
+
+		case preset.ChoiceGeneric:
+			ctx.Text(pm.Label())
+			v := tp.ValIndex()
+			ctx.Dropdown(&v, tp.OptionsLabels()).On(func() {
+				tp.SetValByIndex(v)
+			})
+
 		case preset.ParamSet:
 			ctx.TreeNode(tp.Label(), func() {
 				p.handle(ctx, tp.All())

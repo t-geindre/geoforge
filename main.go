@@ -4,7 +4,6 @@ import (
 	"geoforge/cam"
 	"geoforge/game"
 	"geoforge/noise"
-	"geoforge/preset"
 	"geoforge/render"
 	"geoforge/ui"
 	"geoforge/world"
@@ -16,17 +15,10 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.MaximizeWindow()
 
-	nse := noise.NewSine()
 	rdr := render.NewRenderer()
-	wld := world.NewWorld(256, 10, 1, 4096, nse)
+	wld := world.NewWorld(256, 10, 1, 4096)
 
-	nsePs := nse.Params()
-	nsePs.Prepend(preset.NewParam(0, "Name", "Land mask", func(v string) {
-		nsePs.SetLabel(v)
-	}))
-
-	ps := preset.NewAnonymousParamSet()
-	ps.Append(nsePs)
+	nmg := noise.NewNoiseManager(wld)
 
 	camera := cam.NewWheelZoom(cam.NewMousePan(cam.NewCamera()))
 
@@ -55,7 +47,7 @@ func main() {
 		"Geoforge",
 		ui.NewMetrics(mFps, mTps, mChunksDrawn, mChunks),
 		ui.NewCamera(camera),
-		ui.NewParamSet("Noise", ps),
+		ui.NewParamSet("Noise", nmg.Params()),
 	)
 
 	err := ebiten.RunGame(game.NewGame(
@@ -74,6 +66,7 @@ func main() {
 			return x, y
 		}),
 		gui,
+		nmg,
 	))
 
 	if err != nil {

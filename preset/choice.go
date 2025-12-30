@@ -1,5 +1,12 @@
 package preset
 
+type ChoiceGeneric interface {
+	ParamGeneric
+	OptionsLabels() []string
+	SetValByIndex(idx int)
+	ValIndex() int
+}
+
 type Option[T Numeric] struct {
 	val   T
 	label string
@@ -37,4 +44,29 @@ func NewChoice[T Numeric](id ParamId, label string, val T, opts []Option[T], onC
 
 func (c *choice[T]) Options() []Option[T] {
 	return c.options
+}
+
+func (c *choice[T]) OptionsLabels() []string {
+	labels := make([]string, len(c.options))
+	for i, opt := range c.options {
+		labels[i] = opt.Label()
+	}
+	return labels
+}
+
+func (c *choice[T]) SetValByIndex(idx int) {
+	if idx < 0 || idx >= len(c.options) {
+		return
+	}
+	c.SetVal(c.options[idx].Val())
+}
+
+func (c *choice[T]) ValIndex() int {
+	val := c.Val()
+	for i, opt := range c.options {
+		if opt.Val() == val {
+			return i
+		}
+	}
+	return -1
 }

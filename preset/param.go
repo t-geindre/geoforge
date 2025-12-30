@@ -1,5 +1,9 @@
 package preset
 
+type Numeric interface {
+	~int | ~float32
+}
+
 type ParamId int
 
 type ParamGeneric interface {

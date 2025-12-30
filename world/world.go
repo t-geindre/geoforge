@@ -19,7 +19,7 @@ type World struct {
 	apron     float64
 }
 
-func NewWorld(chunkSize, apron float64, margin, maxChunks int, noise noise.Noise) *World {
+func NewWorld(chunkSize, apron float64, margin, maxChunks int) *World {
 	ws := runtime.NumCPU()
 	if ws > 4 {
 		ws = ws / 2
@@ -32,7 +32,6 @@ func NewWorld(chunkSize, apron float64, margin, maxChunks int, noise noise.Noise
 		margin:    float64(margin) * chunkSize,
 		maxChunks: maxChunks,
 		chunks:    make(map[ChunkId]*Chunk),
-		noise:     noise,
 		queue:     make(chan *Chunk, ws*2),
 		apron:     apron,
 	}
@@ -45,10 +44,6 @@ func NewWorld(chunkSize, apron float64, margin, maxChunks int, noise noise.Noise
 }
 
 func (w *World) Update(rect geo.Rect) {
-	if w.noise.Params().HasChanged() {
-		w.MarkDirty()
-	}
-
 	w.frame++
 
 	rect = rect.Expand(w.margin).SnapOut(w.chunkSize)
@@ -97,6 +92,10 @@ func (w *World) populate() {
 }
 
 func (w *World) ensure(id ChunkId) {
+	if w.noise == nil {
+		return
+	}
+
 	c, exists := w.chunks[id]
 	if !exists {
 		c = NewChunk(id)
@@ -157,4 +156,8 @@ func (w *World) worker(queue chan *Chunk) {
 
 		c.SetState(ChunkStateReady)
 	}
+}
+
+func (w *World) SetNoise(n noise.Noise) {
+	w.noise = n
 }

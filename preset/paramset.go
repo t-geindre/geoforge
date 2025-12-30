@@ -2,10 +2,11 @@ package preset
 
 type ParamSet interface {
 	ParamGeneric
-	Append(p ParamGeneric)
-	Prepend(p ParamGeneric)
+	Append(p ...ParamGeneric)
+	Prepend(p ...ParamGeneric)
 	All() []ParamGeneric
 	SetLabel(label string)
+	QueryParamById(id ParamId) []ParamGeneric
 }
 
 type paramSet struct {
@@ -33,12 +34,16 @@ func (p *paramSet) Label() string {
 	return p.label
 }
 
-func (p *paramSet) Append(param ParamGeneric) {
-	p.set = append(p.set, param)
+func (p *paramSet) Append(params ...ParamGeneric) {
+	for _, pr := range params {
+		p.set = append(p.set, pr)
+	}
 }
 
-func (p *paramSet) Prepend(param ParamGeneric) {
-	p.set = append([]ParamGeneric{param}, p.set...)
+func (p *paramSet) Prepend(params ...ParamGeneric) {
+	for _, pr := range params {
+		p.set = append([]ParamGeneric{pr}, p.set...)
+	}
 }
 
 func (p *paramSet) All() []ParamGeneric {
@@ -59,4 +64,20 @@ func (p *paramSet) HasChanged() bool {
 
 func (p *paramSet) SetLabel(label string) {
 	p.label = label
+}
+
+func (p *paramSet) QueryParamById(id ParamId) []ParamGeneric {
+	var results []ParamGeneric
+	
+	for _, pm := range p.set {
+		if pm.Id() == id {
+			results = append(results, pm)
+		}
+		if subSet, ok := pm.(ParamSet); ok {
+			subResults := subSet.QueryParamById(id)
+			results = append(results, subResults...)
+		}
+	}
+
+	return results
 }
