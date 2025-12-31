@@ -19,7 +19,7 @@ func NewParamSet(label string, ps preset.ParamSet) Component {
 }
 
 func (p *paramSet) UiUpdate(ctx *debugui.Context) {
-	ctx.Header(p.label, false, func() {
+	ctx.Header(p.label, true, func() {
 		p.handle(ctx, p.ps.All())
 	})
 }

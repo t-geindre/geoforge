@@ -1,14 +1,13 @@
 //kage:unit pixels
 package renderer
 
-const SeaLevel = 0.5
-
 var Apron float
 var ChunkSize float
 var Zoom float
 var Origin vec2
 var LightPos vec2
 var Ambient float
+var SeaLevel float
 
 func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     // --- local coords in chunk texture space ---

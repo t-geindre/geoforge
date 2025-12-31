@@ -22,34 +22,54 @@ func NewNoiseManager(r Receiver) *Manager {
 
 	m.AddNoise(NewNoise())
 	m.AddNoise(NewNoise())
+	m.AddNoise(NewNoise())
+	m.AddNoise(NewNoise())
 
 	return m
 }
 
 func (m *Manager) AddNoise(n Noise) {
-	// Label
-	n.Params().SetLabel("Unnamed")
-	n.Params().Prepend(preset.NewParam(0, "Name", n.Params().Label(), func(s string) {
-		n.Params().SetLabel(s)
-	}))
-
 	// Rendering
-	preset.NewParam(1000, "Render", false, func(b bool) {
-		if b {
+	isRendered := false
+	if len(m.noises) == 0 {
+		m.receiver.SetNoise(n)
+		isRendered = true
+	}
+
+	n.Params().Prepend(preset.NewParam(1000, "Render", isRendered, func(p preset.Param[bool]) {
+		if p.Val() {
 			others := m.params.QueryParamById(1000)
 			for _, o := range others {
-				if o != n.Params() {
+				if o != p {
 					o.(preset.Param[bool]).SetVal(false)
 				}
 			}
 			m.receiver.SetNoise(n)
+			return
 		}
-	})
-	n.Params().Prepend()
+
+		// Prevent disabling all noises
+		others := m.params.QueryParamById(1000)
+		anyRendered := false
+		for _, o := range others {
+			if o != p && o.(preset.Param[bool]).Val() {
+				anyRendered = true
+				break
+			}
+		}
+		if !anyRendered {
+			p.SetVal(true)
+		}
+	}))
+
+	// Label
+	n.Params().SetLabel("Unnamed")
+	n.Params().Prepend(preset.NewParam(0, "Name", n.Params().Label(), func(p preset.Param[string]) {
+		n.Params().SetLabel(p.Val())
+	}))
 
 	// Store
 	m.noises = append(m.noises, n)
-	m.receiver.SetNoise(n)
 	m.params.Append(n.Params())
 }
 

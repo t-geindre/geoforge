@@ -22,7 +22,7 @@ func NewCamera(cam Cam) *Camera {
 }
 
 func (c *Camera) UiUpdate(ctx *debugui.Context) {
-	ctx.Header("Camera", false, func() {
+	ctx.Header("Camera", true, func() {
 		ctx.SetGridLayout([]int{-1, 70}, nil)
 		ctx.Text(fmt.Sprintf("Zoom: %.0f%%", c.cam.Zoom()*100))
 		ctx.Button("Reset").On(func() {

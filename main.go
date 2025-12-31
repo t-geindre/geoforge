@@ -43,18 +43,19 @@ func main() {
 	})
 
 	// UI
-	gui := ui.NewUi(
+	gui := ui.NewWindow(
 		"Geoforge",
 		ui.NewMetrics(mFps, mTps, mChunksDrawn, mChunks),
 		ui.NewCamera(camera),
 		ui.NewParamSet("Noise", nmg.Params()),
+		ui.NewParamSet("Renderer", rdr.Params()),
 	)
 
 	err := ebiten.RunGame(game.NewGame(
 		game.NewUpdateFunc(func() {
 			wld.Update(camera.WorldRect())
 			if !gui.Update() {
-				// Ui not capturing events
+				// Window not capturing events
 				camera.Update()
 			}
 		}),

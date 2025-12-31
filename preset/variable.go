@@ -14,7 +14,7 @@ type variable[T Numeric] struct {
 	digits         int
 }
 
-func NewVariable[T Numeric](id ParamId, label string, val, min, max, step T, digits int, onChange func(T)) Variable[T] {
+func NewVariable[T Numeric](id ParamId, label string, val, min, max, step T, digits int, onChange func(Param[T])) Variable[T] {
 	return &variable[T]{
 		Param:  NewParam[T](id, label, val, onChange),
 		min:    min,

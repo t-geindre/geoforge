@@ -34,7 +34,7 @@ type choice[T Numeric] struct {
 	options []Option[T]
 }
 
-func NewChoice[T Numeric](id ParamId, label string, val T, opts []Option[T], onChange func(T)) Choice[T] {
+func NewChoice[T Numeric](id ParamId, label string, val T, opts []Option[T], onChange func(Param[T])) Choice[T] {
 	c := &choice[T]{
 		Param:   NewParam[T](id, label, val, onChange),
 		options: opts,

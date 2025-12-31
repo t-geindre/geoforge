@@ -1,0 +1,22 @@
+//kage:unit pixels
+package renderer
+
+var Apron float
+var ChunkSize float
+var Zoom float
+var Origin vec2
+
+func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
+    // --- local coords in chunk texture space ---
+    local := (dstPos.xy - Origin) / Zoom
+
+    a := Apron
+    n := ChunkSize
+
+    // Skip apron
+    if local.x < a || local.y < a || local.x >= a+n || local.y >= a+n {
+        return vec4(0.0)
+    }
+
+    return imageSrc0UnsafeAt(srcPos)
+}

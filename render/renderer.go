@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"geoforge/cam"
 	"geoforge/geo"
+	"geoforge/preset"
 	"geoforge/world"
 	"image/color"
 
@@ -12,25 +13,24 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-//go:embed shader.kage
-var Shader []byte
-
 type Renderer struct {
 	drawn   int
-	shader  *ebiten.Shader
-	ambient float32
+	ps      preset.ParamSet
+	chunks  []Chunk
+	current int
 }
 
 func NewRenderer() *Renderer {
-	shd, err := ebiten.NewShader(Shader)
-	if err != nil {
-		panic(err) // todo
+	r := &Renderer{
+		chunks: []Chunk{
+			NewTerrain(),
+			NewGrayScale(),
+		},
 	}
 
-	return &Renderer{
-		shader:  shd,
-		ambient: 0.35,
-	}
+	r.buildParams()
+
+	return r
 }
 
 func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
@@ -63,26 +63,18 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 			originX := float32(sx - w.Apron()*z)
 			originY := float32(sy - w.Apron()*z)
 
-			x, y := ebiten.CursorPosition()
-			light := [2]float32{
-				float32(x),
-				float32(y),
-			}
-
 			op.Uniforms = map[string]any{
 				"Apron":     float32(w.Apron()),
 				"ChunkSize": float32(w.ChunkSize()),
 				"Zoom":      float32(z),
 				"Origin":    []float32{originX, originY},
-				"LightPos":  light,
-				"Ambient":   r.ambient,
 			}
 			op.GeoM.Scale(z, z)
 			op.GeoM.Translate(
 				sx-w.Apron()*z,
 				sy-w.Apron()*z,
 			)
-			dst.DrawRectShader(bds.Dx(), bds.Dy(), r.shader, op)
+			r.chunks[r.current].DrawChunk(dst, bds.Dx(), bds.Dy(), op)
 
 			r.drawn++
 			continue
@@ -114,4 +106,31 @@ func debugChunkColor(id world.ChunkId, alpha uint8) color.RGBA {
 		B: uint8(h >> 16),
 		A: alpha,
 	}
+}
+
+func (r *Renderer) Params() preset.ParamSet {
+	return r.ps
+}
+
+func (r *Renderer) buildParams() {
+	ops := make([]preset.Option[int], len(r.chunks))
+	for i, rd := range r.chunks {
+		ops[i] = preset.NewOption(i, rd.Name())
+	}
+
+	if r.ps == nil {
+		r.ps = preset.NewAnonymousParamSet()
+	}
+	r.ps.Clear()
+	
+	r.ps.Append(preset.NewChoice(0, "Renderer", r.current, ops, func(p preset.Param[int]) {
+		if r.current == p.Val() {
+			return
+		}
+
+		r.current = p.Val()
+		r.buildParams()
+	}))
+
+	r.ps.Append(r.chunks[r.current].Params().All()...)
 }

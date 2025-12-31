@@ -7,6 +7,7 @@ type ParamSet interface {
 	All() []ParamGeneric
 	SetLabel(label string)
 	QueryParamById(id ParamId) []ParamGeneric
+	Clear()
 }
 
 type paramSet struct {
@@ -68,7 +69,7 @@ func (p *paramSet) SetLabel(label string) {
 
 func (p *paramSet) QueryParamById(id ParamId) []ParamGeneric {
 	var results []ParamGeneric
-	
+
 	for _, pm := range p.set {
 		if pm.Id() == id {
 			results = append(results, pm)
@@ -80,4 +81,8 @@ func (p *paramSet) QueryParamById(id ParamId) []ParamGeneric {
 	}
 
 	return results
+}
+
+func (p *paramSet) Clear() {
+	p.set = []ParamGeneric{}
 }

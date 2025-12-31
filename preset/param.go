@@ -23,22 +23,24 @@ type param[T comparable] struct {
 	label      string
 	val        T
 	hasChanged bool
-	onChange   func(T)
+	onChange   func(Param[T])
 }
 
-func NewParam[T comparable](id ParamId, label string, val T, onChange func(T)) Param[T] {
+func NewParam[T comparable](id ParamId, label string, val T, onChange func(Param[T])) Param[T] {
 	if onChange == nil {
-		onChange = func(T) {}
+		onChange = func(Param[T]) {}
 	}
 
-	onChange(val)
-
-	return &param[T]{
+	p := &param[T]{
 		id:       id,
 		label:    label,
 		val:      val,
 		onChange: onChange,
 	}
+
+	onChange(p)
+
+	return p
 }
 
 func (p *param[T]) Id() ParamId {
@@ -60,7 +62,7 @@ func (p *param[T]) SetVal(v T) {
 
 	p.hasChanged = true
 	p.val = v
-	p.onChange(p.Val())
+	p.onChange(p)
 }
 
 // HasChanged since last call
