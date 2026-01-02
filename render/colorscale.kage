@@ -5,7 +5,6 @@ var Apron float
 var ChunkSize float
 var Zoom float
 var Origin vec2
-var Color vec3
 
 var ColorFrom vec3
 var ColorTo vec3

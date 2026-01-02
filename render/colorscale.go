@@ -59,7 +59,6 @@ func NewGrayScale() *ColorScale {
 }
 
 func (g *ColorScale) DrawChunk(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions) {
-	op.Uniforms["Color"] = g.color
 	op.Uniforms["ColorFrom"] = g.fromF32
 	op.Uniforms["ColorTo"] = g.toF32
 	dst.DrawRectShader(w, h, g.sh, op)
