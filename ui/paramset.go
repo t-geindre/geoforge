@@ -1,9 +1,15 @@
 package ui
 
 import (
+	"fmt"
 	"geoforge/preset"
+	"image"
+	"image/color"
 
 	"github.com/ebitengine/debugui"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type paramSet struct {
@@ -64,6 +70,56 @@ func (p *paramSet) handle(ctx *debugui.Context, pms []preset.ParamGeneric) {
 			v := tp.ValIndex()
 			ctx.Dropdown(&v, tp.OptionsLabels()).On(func() {
 				tp.SetValByIndex(v)
+			})
+		case preset.Param[color.RGBA]:
+			col := tp.Val()
+			ur, ug, ub, _ := col.R, col.G, col.B, col.A
+			r, g, b := int(ur), int(ug), int(ub)
+
+			ctx.TreeNode(pm.Label(), func() {
+				ctx.SetGridLayout([]int{-3, -1}, []int{54})
+				ctx.GridCell(func(bounds image.Rectangle) {
+					ctx.SetGridLayout([]int{-1, -3}, nil)
+					ctx.Text("Red:")
+					ctx.Slider(&r, 0, 255, 1).On(func() {
+						col.R = uint8(r)
+						tp.SetVal(col)
+					})
+					ctx.Text("Green:")
+					ctx.Slider(&g, 0, 255, 1).On(func() {
+						col.G = uint8(g)
+						tp.SetVal(col)
+					})
+					ctx.Text("Blue:")
+					ctx.Slider(&b, 0, 255, 1).On(func() {
+						col.B = uint8(b)
+						tp.SetVal(col)
+					})
+				})
+				ctx.GridCell(func(bounds image.Rectangle) {
+					ctx.DrawOnlyWidget(func(screen *ebiten.Image) {
+						scale := ctx.Scale()
+						vector.FillRect(
+							screen,
+							float32(bounds.Min.X*scale),
+							float32(bounds.Min.Y*scale),
+							float32(bounds.Dx()*scale),
+							float32(bounds.Dy()*scale),
+							col,
+							false)
+
+						inverted := color.RGBA{R: 255 - col.R, G: 255 - col.G, B: 255 - col.B, A: 255}
+						txt := fmt.Sprintf("#%02X%02X%02X", r, g, b)
+
+						op := &text.DrawOptions{}
+						op.GeoM.Translate(float64((bounds.Min.X+bounds.Max.X)/2), float64((bounds.Min.Y+bounds.Max.Y)/2))
+						op.GeoM.Scale(float64(scale), float64(scale))
+						op.PrimaryAlign = text.AlignCenter
+						op.SecondaryAlign = text.AlignCenter
+						op.ColorScale.ScaleWithColor(inverted)
+						debugui.DrawText(screen, txt, op)
+					})
+				})
 			})
 
 		case preset.ParamSet:

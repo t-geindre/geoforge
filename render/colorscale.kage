@@ -5,6 +5,10 @@ var Apron float
 var ChunkSize float
 var Zoom float
 var Origin vec2
+var Color vec3
+
+var ColorFrom vec3
+var ColorTo vec3
 
 func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     // --- local coords in chunk texture space ---
@@ -17,6 +21,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     if local.x < a || local.y < a || local.x >= a+n || local.y >= a+n {
         return vec4(0.0)
     }
-
-    return imageSrc0UnsafeAt(srcPos)
+    v := imageSrc0UnsafeAt(srcPos).r
+    col := mix(ColorFrom, ColorTo, v)
+    return  vec4(col, 1.0)
 }
