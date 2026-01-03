@@ -8,6 +8,7 @@ var Origin vec2
 
 var ColorFrom vec3
 var ColorTo vec3
+var Transition float
 
 func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     // --- local coords in chunk texture space ---
@@ -20,7 +21,10 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     if local.x < a || local.y < a || local.x >= a+n || local.y >= a+n {
         return vec4(0.0)
     }
+
     v := imageSrc0UnsafeAt(srcPos).r
+    v = clamp(v - 0.5 + Transition, 0.0, 1.0)
     col := mix(ColorFrom, ColorTo, v)
+    
     return  vec4(col, 1.0)
 }

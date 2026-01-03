@@ -108,7 +108,11 @@ func (p *paramSet) handle(ctx *debugui.Context, pms []preset.ParamGeneric) {
 							col,
 							false)
 
-						inverted := color.RGBA{R: 255 - col.R, G: 255 - col.G, B: 255 - col.B, A: 255}
+						txtCol := color.White
+						if (float64(col.R)*0.299 + float64(col.G)*0.587 + float64(col.B)*0.114) > 186.0 {
+							txtCol = color.Black
+						}
+
 						txt := fmt.Sprintf("#%02X%02X%02X", r, g, b)
 
 						op := &text.DrawOptions{}
@@ -116,7 +120,7 @@ func (p *paramSet) handle(ctx *debugui.Context, pms []preset.ParamGeneric) {
 						op.GeoM.Scale(float64(scale), float64(scale))
 						op.PrimaryAlign = text.AlignCenter
 						op.SecondaryAlign = text.AlignCenter
-						op.ColorScale.ScaleWithColor(inverted)
+						op.ColorScale.ScaleWithColor(txtCol)
 						debugui.DrawText(screen, txt, op)
 					})
 				})

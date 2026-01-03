@@ -12,15 +12,16 @@ import (
 var colorscaleShdRaw []byte
 
 type ColorScale struct {
-	sh    *ebiten.Shader
-	ps    preset.ParamSet
-	color [3]float32 // RGB
+	sh *ebiten.Shader
+	ps preset.ParamSet
 
 	from    color.RGBA
 	fromF32 [3]float32
 
 	to    color.RGBA
 	toF32 [3]float32
+
+	trans float32
 }
 
 func NewGrayScale() *ColorScale {
@@ -55,12 +56,17 @@ func NewGrayScale() *ColorScale {
 		}
 	}))
 
+	g.ps.Append(preset.NewVariable(0, "Transition", float32(0.5), 0.0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
+		g.trans = p.Val()
+	}))
+
 	return g
 }
 
 func (g *ColorScale) DrawChunk(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions) {
 	op.Uniforms["ColorFrom"] = g.fromF32
 	op.Uniforms["ColorTo"] = g.toF32
+	op.Uniforms["Transition"] = g.trans
 	dst.DrawRectShader(w, h, g.sh, op)
 }
 
