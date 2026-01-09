@@ -67,11 +67,3 @@ func (c *Chunk) Is(state int) bool {
 
 	return c.state == state
 }
-
-func (c *Chunk) SetLastUsed(frame uint64) {
-	c.lastUsed = frame
-}
-
-func (c *Chunk) LastUsed() uint64 {
-	return c.lastUsed
-}

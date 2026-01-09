@@ -4,6 +4,7 @@ import (
 	"geoforge/geo"
 	"geoforge/noise"
 	"runtime"
+	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -13,10 +14,11 @@ type World struct {
 	margin    float64
 	chunks    map[ChunkId]*Chunk
 	maxChunks int
-	frame     uint64
-	noise     noise.Noise
 	queue     chan *Chunk
 	apron     float64
+
+	noise   noise.Noise
+	noiseMu sync.RWMutex
 }
 
 func NewWorld(chunkSize, apron float64, margin, maxChunks int) *World {
@@ -44,8 +46,6 @@ func NewWorld(chunkSize, apron float64, margin, maxChunks int) *World {
 }
 
 func (w *World) Update(rect geo.Rect) {
-	w.frame++
-
 	rect = rect.Expand(w.margin).SnapOut(w.chunkSize)
 
 	for y := rect.MinY; y < rect.MaxY; y += w.chunkSize {
@@ -78,7 +78,7 @@ func (w *World) MarkDirty() {
 }
 
 func (w *World) populate() {
-	if w.noise == nil {
+	if w.Noise() == nil {
 		return
 	}
 
@@ -101,8 +101,6 @@ func (w *World) ensure(id ChunkId) {
 		c = NewChunk(id)
 		w.chunks[id] = c
 	}
-
-	c.SetLastUsed(w.frame)
 }
 
 func (w *World) evict(rect geo.Rect) {
@@ -131,11 +129,16 @@ func (w *World) worker(queue chan *Chunk) {
 			continue
 		}
 
-		c.SetState(ChunkStateGenerating)
-
 		baseX := c.Id().X*N - A
 		baseY := c.Id().Y*N - A
-		w.noise.Fill(hm, W, float32(baseX), float32(baseY))
+
+		ns := w.Noise()
+		if ns == nil {
+			continue
+		}
+
+		c.SetState(ChunkStateGenerating)
+		ns.Fill(hm, W, float32(baseX), float32(baseY))
 
 		for i := range hm {
 			n := hm[i]
@@ -159,6 +162,16 @@ func (w *World) worker(queue chan *Chunk) {
 }
 
 func (w *World) SetNoise(n noise.Noise) {
+	w.noiseMu.Lock()
 	w.noise = n
+	w.noiseMu.Unlock()
+
 	w.MarkDirty()
+}
+
+func (w *World) Noise() noise.Noise {
+	w.noiseMu.RLock()
+	defer w.noiseMu.RUnlock()
+
+	return w.noise
 }
