@@ -10,32 +10,20 @@ import (
 )
 
 type World struct {
-	chunkSize float64
-	margin    float64
-	chunks    map[ChunkId]*Chunk
-	maxChunks int
-	queue     chan *Chunk
-	apron     float64
+	margin float64
+	chunks map[ChunkId]*Chunk
+	queue  chan *Chunk
 
 	noise   noise.Noise
 	noiseMu sync.RWMutex
 }
 
-func NewWorld(chunkSize, apron float64, margin, maxChunks int) *World {
+func NewWorld(margin int) *World {
 	ws := runtime.NumCPU()
-	if ws > 4 {
-		ws = ws / 2
-	} else if ws < 1 {
-		ws = 1
-	}
-
 	w := &World{
-		chunkSize: chunkSize,
-		margin:    float64(margin) * chunkSize,
-		maxChunks: maxChunks,
-		chunks:    make(map[ChunkId]*Chunk),
-		queue:     make(chan *Chunk, ws*2),
-		apron:     apron,
+		margin: float64(margin) * ChunkSize,
+		chunks: make(map[ChunkId]*Chunk),
+		queue:  make(chan *Chunk, ws*2),
 	}
 
 	for i := 0; i < ws; i++ {
@@ -46,11 +34,11 @@ func NewWorld(chunkSize, apron float64, margin, maxChunks int) *World {
 }
 
 func (w *World) Update(rect geo.Rect) {
-	rect = rect.Expand(w.margin).SnapOut(w.chunkSize)
+	rect = rect.Expand(w.margin).SnapOut(ChunkSize)
 
-	for y := rect.MinY; y < rect.MaxY; y += w.chunkSize {
-		for x := rect.MinX; x < rect.MaxX; x += w.chunkSize {
-			id := NewChunkId(int(x/w.chunkSize), int(y/w.chunkSize))
+	for y := rect.MinY; y < rect.MaxY; y += ChunkSize {
+		for x := rect.MinX; x < rect.MaxX; x += ChunkSize {
+			id := NewChunkId(int(x/ChunkSize), int(y/ChunkSize))
 			w.ensure(id)
 		}
 	}
@@ -61,14 +49,6 @@ func (w *World) Update(rect geo.Rect) {
 
 func (w *World) Chunks() map[ChunkId]*Chunk {
 	return w.chunks
-}
-
-func (w *World) ChunkSize() float64 {
-	return w.chunkSize
-}
-
-func (w *World) Apron() float64 {
-	return w.apron
 }
 
 func (w *World) MarkDirty() {
@@ -105,10 +85,10 @@ func (w *World) ensure(id ChunkId) {
 
 func (w *World) evict(rect geo.Rect) {
 	for id, c := range w.chunks {
-		cx := float64(id.X) * w.chunkSize
-		cy := float64(id.Y) * w.chunkSize
+		cx := float64(id.X) * ChunkSize
+		cy := float64(id.Y) * ChunkSize
 
-		cRect := geo.NewRect(cx, cy, cx+w.chunkSize, cy+w.chunkSize)
+		cRect := geo.NewRect(cx, cy, cx+ChunkSize, cy+ChunkSize)
 		if !rect.Intersects(cRect) {
 			c.SetState(ChunkStateEvicted)
 			delete(w.chunks, id)
@@ -117,20 +97,16 @@ func (w *World) evict(rect geo.Rect) {
 }
 
 func (w *World) worker(queue chan *Chunk) {
-	N := int(w.chunkSize)
-	A := int(w.apron)
-	W := N + 2*A // texture width/height with apron
-
-	hm := make([]float32, W*W) // heightmap raw
-	hmp := make([]byte, 4*W*W) // heightmap RGBA
+	hm := make([]float32, ChunkSurface) // heightmap raw
+	hmp := make([]byte, 4*ChunkSurface) // heightmap RGBA
 
 	for c := range queue {
 		if !c.Is(ChunkStateQueued) {
 			continue
 		}
 
-		baseX := c.Id().X*N - A
-		baseY := c.Id().Y*N - A
+		baseX := c.Id().X*ChunkSize - ChunkApron
+		baseY := c.Id().Y*ChunkSize - ChunkApron
 
 		ns := w.Noise()
 		if ns == nil {
@@ -138,7 +114,7 @@ func (w *World) worker(queue chan *Chunk) {
 		}
 
 		c.SetState(ChunkStateGenerating)
-		ns.Fill(hm, W, float32(baseX), float32(baseY))
+		ns.Fill(hm, ChunkDimSize, float32(baseX), float32(baseY))
 
 		for i := range hm {
 			n := hm[i]
@@ -151,8 +127,8 @@ func (w *World) worker(queue chan *Chunk) {
 		}
 
 		hmImg := c.GetLayer(LayerHeightMap)
-		if hmImg == nil || hmImg.Bounds().Dx() != W || hmImg.Bounds().Dy() != W {
-			hmImg = ebiten.NewImage(W, W)
+		if hmImg == nil || hmImg.Bounds().Dx() != ChunkDimSize || hmImg.Bounds().Dy() != ChunkDimSize {
+			hmImg = ebiten.NewImage(ChunkDimSize, ChunkDimSize)
 			c.SetLayer(LayerHeightMap, hmImg)
 		}
 		hmImg.WritePixels(hmp)

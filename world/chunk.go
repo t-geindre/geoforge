@@ -18,6 +18,17 @@ const (
 	LayerHeightMap = iota
 )
 
+const (
+	// ChunkSize size of the chunk without apron
+	ChunkSize = 256
+	// ChunkApron size of the apron around the chunk for seamless generation
+	ChunkApron = 10
+	// ChunkDimSize one dimension size including apron (X or Y)
+	ChunkDimSize = ChunkSize + 2*ChunkApron
+	// ChunkSurface total surface including apron (X * Y)
+	ChunkSurface = ChunkDimSize * ChunkDimSize
+)
+
 type Chunk struct {
 	id       ChunkId
 	state    int

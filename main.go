@@ -13,10 +13,9 @@ import (
 
 func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	//ebiten.MaximizeWindow()
 
 	rdr := render.NewRenderer()
-	wld := world.NewWorld(256, 10, 1, 4096)
+	wld := world.NewWorld(2)
 
 	nmg := noise.NewNoiseManager(wld)
 

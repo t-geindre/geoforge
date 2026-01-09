@@ -40,15 +40,14 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 		return
 	}
 
-	csWorld := w.ChunkSize()
-	csScreen := csWorld * z
+	csScreen := world.ChunkSize * z
 	worldRect := cam.WorldRect()
 
 	for _, c := range w.Chunks() {
-		wx := float64(c.Id().X) * csWorld
-		wy := float64(c.Id().Y) * csWorld
+		wx := float64(c.Id().X) * world.ChunkSize
+		wy := float64(c.Id().Y) * world.ChunkSize
 
-		cRect := geo.NewRect(wx, wy, wx+csWorld, wy+csWorld)
+		cRect := geo.NewRect(wx, wy, wx+world.ChunkSize, wy+world.ChunkSize)
 		if !worldRect.Intersects(cRect) {
 			continue
 		}
@@ -60,19 +59,19 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 			bds := hm.Bounds()
 			op := &ebiten.DrawRectShaderOptions{}
 			op.Images = [4]*ebiten.Image{hm}
-			originX := float32(sx - w.Apron()*z)
-			originY := float32(sy - w.Apron()*z)
+			originX := float32(sx - world.ChunkApron*z)
+			originY := float32(sy - world.ChunkApron*z)
 
 			op.Uniforms = map[string]any{
-				"Apron":     float32(w.Apron()),
-				"ChunkSize": float32(w.ChunkSize()),
+				"Apron":     float32(world.ChunkApron),
+				"ChunkSize": float32(world.ChunkSize),
 				"Zoom":      float32(z),
 				"Origin":    []float32{originX, originY},
 			}
 			op.GeoM.Scale(z, z)
 			op.GeoM.Translate(
-				sx-w.Apron()*z,
-				sy-w.Apron()*z,
+				sx-world.ChunkApron*z,
+				sy-world.ChunkApron*z,
 			)
 			r.renderers[r.current].DrawChunk(dst, bds.Dx(), bds.Dy(), op)
 
