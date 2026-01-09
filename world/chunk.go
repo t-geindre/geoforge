@@ -1,17 +1,13 @@
 package world
 
 import (
-	"sync"
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
 	ChunkStateDirty = iota
 	ChunkStateQueued
-	ChunkStateGenerating
 	ChunkStateReady
-	ChunkStateEvicted
 )
 
 const (
@@ -30,18 +26,17 @@ const (
 )
 
 type Chunk struct {
-	id       ChunkId
-	state    int
-	layers   map[int]*ebiten.Image
-	lastUsed uint64
-	mutex    sync.Mutex
+	id    ChunkId
+	state int
+	gen   uint64
+	hm    *ebiten.Image // heightmap, R = height
 }
 
 func NewChunk(id ChunkId) *Chunk {
 	return &Chunk{
-		id:     id,
-		state:  ChunkStateDirty,
-		layers: make(map[int]*ebiten.Image),
+		id:    id,
+		state: ChunkStateDirty,
+		hm:    ebiten.NewImage(ChunkDimSize, ChunkDimSize),
 	}
 }
 
@@ -49,32 +44,33 @@ func (c *Chunk) Id() ChunkId {
 	return c.id
 }
 
-func (c *Chunk) SetLayer(l int, img *ebiten.Image) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+// WritePixels writes the given pixels to the heightmap if the generation matches
+func (c *Chunk) WritePixels(gen uint64, pixels []byte) bool {
+	if c.gen != gen {
+		return false
+	}
 
-	c.layers[l] = img
+	c.hm.WritePixels(pixels)
+
+	return true
 }
 
-func (c *Chunk) GetLayer(l int) *ebiten.Image {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	return c.layers[l]
+func (c *Chunk) GetHeightMap() *ebiten.Image {
+	return c.hm
 }
 
-// SetState sets the state of the chunk in a thread-safe manner.
 func (c *Chunk) SetState(state int) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
 	c.state = state
 }
 
-// Is checks if the chunk is in the given state in a thread-safe manner.
 func (c *Chunk) Is(state int) bool {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
 	return c.state == state
+}
+
+func (c *Chunk) GetGeneration() uint64 {
+	return c.gen
+}
+
+func (c *Chunk) BumpGeneration() {
+	c.gen++
 }

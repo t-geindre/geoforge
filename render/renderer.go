@@ -53,9 +53,9 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 		}
 
 		sx, sy := cam.WorldToScreen(wx, wy)
-		hm := c.GetLayer(world.LayerHeightMap)
+		hm := c.GetHeightMap()
 
-		if hm != nil && c.Is(world.ChunkStateReady) {
+		if c.Is(world.ChunkStateReady) {
 			bds := hm.Bounds()
 			op := &ebiten.DrawRectShaderOptions{}
 			op.Images = [4]*ebiten.Image{hm}
