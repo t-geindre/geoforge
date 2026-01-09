@@ -14,15 +14,15 @@ import (
 )
 
 type Renderer struct {
-	drawn   int
-	ps      preset.ParamSet
-	chunks  []Chunk
-	current int
+	drawn     int
+	ps        preset.ParamSet
+	renderers []ChunkRenderer
+	current   int
 }
 
 func NewRenderer() *Renderer {
 	r := &Renderer{
-		chunks: []Chunk{
+		renderers: []ChunkRenderer{
 			NewColorScale(),
 			NewTerrain(),
 		},
@@ -74,7 +74,7 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 				sx-w.Apron()*z,
 				sy-w.Apron()*z,
 			)
-			r.chunks[r.current].DrawChunk(dst, bds.Dx(), bds.Dy(), op)
+			r.renderers[r.current].DrawChunk(dst, bds.Dx(), bds.Dy(), op)
 
 			r.drawn++
 			continue
@@ -113,8 +113,8 @@ func (r *Renderer) Params() preset.ParamSet {
 }
 
 func (r *Renderer) buildParams() {
-	ops := make([]preset.Option[int], len(r.chunks))
-	for i, rd := range r.chunks {
+	ops := make([]preset.Option[int], len(r.renderers))
+	for i, rd := range r.renderers {
 		ops[i] = preset.NewOption(i, rd.Name())
 	}
 
@@ -132,5 +132,5 @@ func (r *Renderer) buildParams() {
 		r.buildParams()
 	}))
 
-	r.ps.Append(r.chunks[r.current].Params().All()...)
+	r.ps.Append(r.renderers[r.current].Params().All()...)
 }

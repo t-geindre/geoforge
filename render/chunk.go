@@ -6,7 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Chunk interface {
+type ChunkRenderer interface {
 	DrawChunk(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions)
 	Params() preset.ParamSet
 	Name() string
