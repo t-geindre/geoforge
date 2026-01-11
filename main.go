@@ -13,6 +13,7 @@ import (
 
 func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.MaximizeWindow()
 
 	rdr := render.NewRenderer()
 	wld := world.NewWorld(2)
@@ -67,6 +68,7 @@ func main() {
 		}),
 		gui,
 		nmg,
+		rdr,
 	))
 
 	if err != nil {

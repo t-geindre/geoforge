@@ -33,6 +33,10 @@ func NewRenderer() *Renderer {
 	return r
 }
 
+func (r *Renderer) Update() {
+	r.renderers[r.current].Update()
+}
+
 func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 	r.drawn = 0
 	z := cam.Zoom()

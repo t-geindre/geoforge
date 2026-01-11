@@ -14,6 +14,15 @@ var Ambient float
 // Levels
 var SeaLevel float
 
+// Colors
+var WaterDeepColor vec3
+var WaterShallowColor vec3
+var BeachColor vec3
+var PlainColor vec3
+var HillColor vec3
+var MountainColor vec3
+var SnowColor vec3
+
 // Normals
 var NormalStrength float
 var NormalEps float
@@ -64,9 +73,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     // ===== WATER =====
     if h < SeaLevel {
         t := h / SeaLevel
-        deep := vec3(0.02, 0.08, 0.25)
-        shallow := vec3(0.10, 0.35, 0.60)
-        base = mix(deep, shallow, t)
+        base = mix(WaterDeepColor, WaterShallowColor, t)
 
         // Flatten normal for water
         Nw := vec3(0.0, 0.0, 1.0)
@@ -89,7 +96,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
 
     // ===== BEACH =====
     if h < SeaLevel + 0.03 {
-        base = vec3(0.85, 0.80, 0.60)
+        base = BeachColor
         diffuse = 0.45 + 0.55 * ndotl
         return vec4(base * diffuse, 1.0)
     }
@@ -98,13 +105,13 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     t := (h - SeaLevel) / (1.0 - SeaLevel)
 
     if t < 0.35 {
-        base = vec3(0.15, 0.55, 0.20) // plains
+        base = PlainColor
     } else if t < 0.60 {
-        base = vec3(0.35, 0.45, 0.25) // hills
+        base = HillColor
     } else if t < 0.85 {
-        base = vec3(0.55, 0.55, 0.55) // mountains
+        base = MountainColor
     } else {
-        base = vec3(0.95, 0.95, 0.95) // snow
+        base = SnowColor
         diffuse = 0.45 + 0.65 * ndotl
     }
 

@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"geoforge/preset"
 	"geoforge/world"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -11,70 +12,80 @@ import (
 //go:embed terrain.kage
 var terrainShdRaw []byte
 
-type Terrain struct {
-	sh *ebiten.Shader
-	ps preset.ParamSet
+func NewTerrain() ChunkRenderer {
+	r := newChunkRenderer("Terrain", terrainShdRaw)
 
-	ambientLight   float32
-	seaLevel       float32
-	normalStrength float32
-	normalEps      float32
-}
-
-func NewTerrain() *Terrain {
-	t := &Terrain{}
-
-	shd, err := ebiten.NewShader(terrainShdRaw)
-	if err != nil {
-		panic(err)
+	// Update, light follows mouse
+	r.update = func() {
+		x, y := ebiten.CursorPosition()
+		r.uniforms["LightPos"] = [2]float32{
+			float32(x),
+			float32(y),
+		}
 	}
 
+	// Lighting
 	lights := preset.NewParamSet(0, "Lighting")
-	normals := preset.NewParamSet(0, "Normals")
-	levels := preset.NewParamSet(0, "Levels")
-
-	ps := preset.NewAnonymousParamSet()
-	ps.Append(lights)
-	ps.Append(normals)
-	ps.Append(levels)
 
 	lights.Append(preset.NewVariable(1, "Ambient", 0.35, 0.0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
-		t.ambientLight = p.Val()
+		r.uniforms["Ambient"] = p.Val()
 	}))
+
+	r.ps.Append(lights)
+
+	// Normals
+	normals := preset.NewParamSet(0, "Normals")
 
 	normals.Append(preset.NewVariable(1, "Strength", 70, 0.0, 250.0, 1, 0, func(p preset.Param[float32]) {
-		t.normalStrength = p.Val()
+		r.uniforms["NormalStrength"] = p.Val()
 	}))
 	normals.Append(preset.NewVariable(1, "Epsilon", 1, 1, world.ChunkApron, 1, 0, func(p preset.Param[float32]) {
-		t.normalEps = p.Val()
+		r.uniforms["NormalEps"] = p.Val()
 	}))
+
+	r.ps.Append(normals)
+
+	// Levels
+	levels := preset.NewParamSet(0, "Levels")
+
 	levels.Append(preset.NewVariable(1, "Sea", 0.5, -0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
-		t.seaLevel = p.Val()
+		r.uniforms["SeaLevel"] = p.Val()
 	}))
 
-	t.sh = shd
-	t.ps = ps
+	r.ps.Append(levels)
 
-	return t
-}
+	// Colors
+	colors := preset.NewParamSet(0, "Colors")
 
-func (t *Terrain) DrawChunk(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions) {
-	x, y := ebiten.CursorPosition()
-	op.Uniforms["LightPos"] = [2]float32{
-		float32(x),
-		float32(y),
-	}
-	op.Uniforms["Ambient"] = t.ambientLight
-	op.Uniforms["SeaLevel"] = t.seaLevel
-	op.Uniforms["NormalStrength"] = t.normalStrength
-	op.Uniforms["NormalEps"] = t.normalEps
-	dst.DrawRectShader(w, h, t.sh, op)
-}
+	colors.Append(preset.NewParam(0, "Watter shallow", f32ToRgba([3]float32{0.1, 0.4, 0.7}), func(p preset.Param[color.RGBA]) {
+		r.uniforms["WaterShallowColor"] = rgbaToF32(p.Val())
+	}))
 
-func (t *Terrain) Params() preset.ParamSet {
-	return t.ps
-}
+	colors.Append(preset.NewParam(0, "Watter deep", f32ToRgba([3]float32{0.02, 0.08, 0.25}), func(p preset.Param[color.RGBA]) {
+		r.uniforms["WaterDeepColor"] = rgbaToF32(p.Val())
+	}))
 
-func (t *Terrain) Name() string {
-	return "Terrain"
+	colors.Append(preset.NewParam(0, "Beach", f32ToRgba([3]float32{0.85, 0.80, 0.60}), func(p preset.Param[color.RGBA]) {
+		r.uniforms["BeachColor"] = rgbaToF32(p.Val())
+	}))
+
+	colors.Append(preset.NewParam(0, "Plain", f32ToRgba([3]float32{0.15, 0.55, 0.20}), func(p preset.Param[color.RGBA]) {
+		r.uniforms["PlainColor"] = rgbaToF32(p.Val())
+	}))
+
+	colors.Append(preset.NewParam(0, "Hill", f32ToRgba([3]float32{0.35, 0.45, 0.25}), func(p preset.Param[color.RGBA]) {
+		r.uniforms["HillColor"] = rgbaToF32(p.Val())
+	}))
+
+	colors.Append(preset.NewParam(0, "Mountain", f32ToRgba([3]float32{0.55, 0.55, 0.55}), func(p preset.Param[color.RGBA]) {
+		r.uniforms["MountainColor"] = rgbaToF32(p.Val())
+	}))
+
+	colors.Append(preset.NewParam(0, "Snow", f32ToRgba([3]float32{0.95, 0.95, 0.95}), func(p preset.Param[color.RGBA]) {
+		r.uniforms["SnowColor"] = rgbaToF32(p.Val())
+	}))
+
+	r.ps.Append(colors)
+
+	return r
 }
