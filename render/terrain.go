@@ -3,6 +3,7 @@ package render
 import (
 	_ "embed"
 	"geoforge/preset"
+	"geoforge/world"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -14,8 +15,10 @@ type Terrain struct {
 	sh *ebiten.Shader
 	ps preset.ParamSet
 
-	ambientLight float32
-	seaLevel     float32
+	ambientLight   float32
+	seaLevel       float32
+	normalStrength float32
+	normalEps      float32
 }
 
 func NewTerrain() *Terrain {
@@ -26,11 +29,26 @@ func NewTerrain() *Terrain {
 		panic(err)
 	}
 
+	lights := preset.NewParamSet(0, "Lighting")
+	normals := preset.NewParamSet(0, "Normals")
+	levels := preset.NewParamSet(0, "Levels")
+
 	ps := preset.NewAnonymousParamSet()
-	ps.Append(preset.NewVariable(1, "Ambient Light", 0.35, 0.0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
+	ps.Append(lights)
+	ps.Append(normals)
+	ps.Append(levels)
+
+	lights.Append(preset.NewVariable(1, "Ambient", 0.35, 0.0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
 		t.ambientLight = p.Val()
 	}))
-	ps.Append(preset.NewVariable(1, "Sea Level", 0.5, -0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
+
+	normals.Append(preset.NewVariable(1, "Strength", 70, 0.0, 250.0, 1, 0, func(p preset.Param[float32]) {
+		t.normalStrength = p.Val()
+	}))
+	normals.Append(preset.NewVariable(1, "Epsilon", 1, 1, world.ChunkApron, 1, 0, func(p preset.Param[float32]) {
+		t.normalEps = p.Val()
+	}))
+	levels.Append(preset.NewVariable(1, "Sea", 0.5, -0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
 		t.seaLevel = p.Val()
 	}))
 
@@ -48,6 +66,8 @@ func (t *Terrain) DrawChunk(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShad
 	}
 	op.Uniforms["Ambient"] = t.ambientLight
 	op.Uniforms["SeaLevel"] = t.seaLevel
+	op.Uniforms["NormalStrength"] = t.normalStrength
+	op.Uniforms["NormalEps"] = t.normalEps
 	dst.DrawRectShader(w, h, t.sh, op)
 }
 

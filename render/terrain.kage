@@ -1,13 +1,22 @@
 //kage:unit pixels
 package renderer
 
+// Fixed
 var Apron float
 var ChunkSize float
 var Zoom float
 var Origin vec2
+
+// Lighting
 var LightPos vec2
 var Ambient float
+
+// Levels
 var SeaLevel float
+
+// Normals
+var NormalStrength float
+var NormalEps float
 
 func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     // --- local coords in chunk texture space ---
@@ -21,26 +30,21 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
         return vec4(0.0)
     }
 
-//return imageSrc0UnsafeAt(srcPos)
-
-
-
     // --- height sampling ---
     p := srcPos
     h := imageSrc0UnsafeAt(p).r
 
     // --- normal from heightmap ---
-    eps := 1.0
-    hx1 := imageSrc0UnsafeAt(p + vec2(eps, 0.0)).r
-    hx0 := imageSrc0UnsafeAt(p - vec2(eps, 0.0)).r
-    hy1 := imageSrc0UnsafeAt(p + vec2(0.0, eps)).r
-    hy0 := imageSrc0UnsafeAt(p - vec2(0.0, eps)).r
+    hx1 := imageSrc0UnsafeAt(p + vec2(NormalEps, 0.0)).r
+    hx0 := imageSrc0UnsafeAt(p - vec2(NormalEps, 0.0)).r
+    hy1 := imageSrc0UnsafeAt(p + vec2(0.0, NormalEps)).r
+    hy0 := imageSrc0UnsafeAt(p - vec2(0.0, NormalEps)).r
 
-    dx := (hx1 - hx0) * 0.5
-    dy := (hy1 - hy0) * 0.5
+    inv2e := 0.5 / max(NormalEps, 0.0001)
+    dx := (hx1 - hx0) * inv2e
+    dy := (hy1 - hy0) * inv2e
 
-    normalStrength := 70.0
-    N := normalize(vec3(-dx*normalStrength, -dy*normalStrength, 1.0))
+    N := normalize(vec3(-dx*NormalStrength, -dy*NormalStrength, 1.0))
 
     // --- lighting vectors ---
     // Fragment position in screen space
@@ -52,8 +56,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
 
     ndotl := clamp(dot(N, L), 0.0, 1.0)
 
-    ambient := Ambient
-    diffuse := ambient + (1.0 - ambient) * ndotl
+    diffuse := Ambient + (1.0 - Ambient) * ndotl
 
     // --- biome color ---
     var base vec3
@@ -106,7 +109,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
     }
 
     // cheap AO from slope
-    slope := clamp((abs(dx) + abs(dy)) * normalStrength * 0.35, 0.0, 1.0)
+    slope := clamp((abs(dx) + abs(dy)) * NormalStrength * 0.35, 0.0, 1.0)
     ao := 1.0 - 0.25 * slope
 
     col := base * diffuse * ao
