@@ -31,25 +31,36 @@ func NewTerrain() ChunkRenderer {
 		r.uniforms["Ambient"] = p.Val()
 	}))
 
-	r.ps.Append(lights)
-
-	// Normals
-	normals := preset.NewParamSet(0, "Normals")
-
-	normals.Append(preset.NewVariable(1, "Strength", 70, 0.0, 250.0, 1, 0, func(p preset.Param[float32]) {
+	lights.Append(preset.NewVariable(1, "Normal Strength", 70, 0.0, 250.0, 1, 0, func(p preset.Param[float32]) {
 		r.uniforms["NormalStrength"] = p.Val()
 	}))
-	normals.Append(preset.NewVariable(1, "Epsilon", 1, 1, world.ChunkApron, 1, 0, func(p preset.Param[float32]) {
+	lights.Append(preset.NewVariable(1, "Normal Epsilon", 1, 1, world.ChunkApron, 1, 0, func(p preset.Param[float32]) {
 		r.uniforms["NormalEps"] = p.Val()
 	}))
 
-	r.ps.Append(normals)
+	r.ps.Append(lights)
 
 	// Levels
 	levels := preset.NewParamSet(0, "Levels")
 
 	levels.Append(preset.NewVariable(1, "Sea", 0.5, -0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
 		r.uniforms["SeaLevel"] = p.Val()
+	}))
+
+	levels.Append(preset.NewVariable(1, "Beach", 0.06, -0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
+		r.uniforms["BeachLevel"] = p.Val()
+	}))
+
+	levels.Append(preset.NewVariable(1, "Plain", 0.35, -0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
+		r.uniforms["PlainLevel"] = p.Val()
+	}))
+
+	levels.Append(preset.NewVariable(1, "Hill", 0.60, -0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
+		r.uniforms["HillLevel"] = p.Val()
+	}))
+
+	levels.Append(preset.NewVariable(1, "Mountain", 0.85, -0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
+		r.uniforms["MountainLevel"] = p.Val()
 	}))
 
 	r.ps.Append(levels)

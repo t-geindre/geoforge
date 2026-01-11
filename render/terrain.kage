@@ -13,6 +13,10 @@ var Ambient float
 
 // Levels
 var SeaLevel float
+var BeachLevel float
+var PlainLevel float
+var HillLevel float
+var MountainLevel float
 
 // Colors
 var WaterDeepColor vec3
@@ -94,23 +98,24 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
         return vec4(clamp(colorOut, 0.0, 1.0), 1.0)
     }
 
-    // ===== BEACH =====
-    if h < SeaLevel + 0.03 {
-        base = BeachColor
-        diffuse = 0.45 + 0.55 * ndotl
-        return vec4(base * diffuse, 1.0)
-    }
-
     // ===== LAND =====
     t := (h - SeaLevel) / (1.0 - SeaLevel)
 
-    if t < 0.35 {
+    if t < BeachLevel {
+        base = BeachColor
+        diffuse = 0.45 + 0.55 * ndotl
+
+    } else if t < PlainLevel {
         base = PlainColor
-    } else if t < 0.60 {
+
+    } else if t < HillLevel {
         base = HillColor
-    } else if t < 0.85 {
+
+    } else if t < MountainLevel {
         base = MountainColor
+
     } else {
+        // ===== SNOW =====
         base = SnowColor
         diffuse = 0.45 + 0.65 * ndotl
     }
