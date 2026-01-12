@@ -11,6 +11,7 @@ var Origin vec2
 var LightPos vec2
 var LightIntensity float
 var Ambient float
+var AmbientColor vec3
 
 // Levels
 var SeaLevel float
@@ -70,7 +71,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
 
     ndotl := clamp(dot(N, L), 0.0, 1.0)
 
-    diffuse := Ambient + (1.0 - Ambient) * ndotl * LightIntensity
+    diffuse := AmbientColor * Ambient + vec3(ndotl * LightIntensity)
 
     // --- biome color ---
     var base vec3
@@ -90,10 +91,10 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
         ndotlW := clamp(dot(Nw, L), 0.0, 1.0)
 
         // Diffuse lighting (responds to Ambient + LightIntensity)
-        waterDiffuse := Ambient + (1.0 - Ambient) * ndotlW * LightIntensity
+        waterDiffuse := AmbientColor * Ambient + vec3(ndotlW * LightIntensity)
 
         // Keep water flatter and brighter than land
-        waterDiffuse = mix(0.65, 1.0, waterDiffuse)
+        waterDiffuse = mix(vec3(0.65), vec3(1.0), waterDiffuse)
 
         // Specular reflection (Blinn–Phong)
         H := normalize(L + V)
@@ -126,7 +127,7 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
 
     } else {
         base = SnowColor
-        diffuse = 0.45 + 0.65 * ndotl * LightIntensity
+        diffuse = AmbientColor * Ambient + vec3(0.65 * ndotl * LightIntensity)
     }
 
     // cheap AO from slope

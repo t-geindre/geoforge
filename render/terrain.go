@@ -43,9 +43,14 @@ func NewTerrain() ChunkRenderer {
 	// Lighting
 	lights := preset.NewParamSet(0, "Lighting")
 
-	lights.Append(preset.NewVariable(1, "Ambient", 0.35, 0.0, 1.0, 0.01, 2, func(p preset.Param[float32]) { // Todo add color
+	ambient := preset.NewParamSet(0, "Ambient")
+	ambient.Append(preset.NewVariable(1, "Intensity", 0.35, 0.0, 1.0, 0.01, 2, func(p preset.Param[float32]) { // Todo add color
 		r.uniforms["Ambient"] = p.Val()
 	}))
+	ambient.Append(preset.NewParam(0, "Color", f32ToRgba([3]float32{1.0, 1.0, 1.0}), func(p preset.Param[color.RGBA]) {
+		r.uniforms["AmbientColor"] = rgbaToF32(p.Val())
+	}))
+	lights.Append(ambient)
 
 	spot := preset.NewParamSet(0, "Spot")
 	spot.Append(preset.NewVariable(1, "Intensity", 1, 0.0, 2.0, 0.01, 2, func(p preset.Param[float32]) { // Todo add radius and color
