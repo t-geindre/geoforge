@@ -103,7 +103,6 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
 
     if t < BeachLevel {
         base = BeachColor
-        diffuse = 0.45 + 0.55 * ndotl
 
     } else if t < PlainLevel {
         base = PlainColor
@@ -115,7 +114,6 @@ func Fragment(dstPos vec4, srcPos vec2, color vec4) vec4 {
         base = MountainColor
 
     } else {
-        // ===== SNOW =====
         base = SnowColor
         diffuse = 0.45 + 0.65 * ndotl
     }

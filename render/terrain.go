@@ -31,7 +31,7 @@ func NewTerrain() ChunkRenderer {
 		r.uniforms["Ambient"] = p.Val()
 	}))
 
-	lights.Append(preset.NewVariable(1, "Normal Strength", 70, 0.0, 250.0, 1, 0, func(p preset.Param[float32]) {
+	lights.Append(preset.NewVariable(1, "Normal Strength", 70, 0.0, 500.0, 1, 0, func(p preset.Param[float32]) {
 		r.uniforms["NormalStrength"] = p.Val()
 	}))
 	lights.Append(preset.NewVariable(1, "Normal Epsilon", 1, 1, world.ChunkApron, 1, 0, func(p preset.Param[float32]) {
