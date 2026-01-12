@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Game struct {
@@ -29,6 +30,10 @@ func NewGame(obj ...any) *Game {
 }
 
 func (g *Game) Update() error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) && ebiten.IsKeyPressed(ebiten.KeyAlt) {
+		ebiten.SetFullscreen(!ebiten.IsFullscreen())
+	}
+
 	for _, u := range g.updater {
 		u.Update()
 	}

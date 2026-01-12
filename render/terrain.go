@@ -15,28 +15,62 @@ var terrainShdRaw []byte
 func NewTerrain() ChunkRenderer {
 	r := newChunkRenderer("Terrain", terrainShdRaw)
 
-	// Update, light follows mouse
+	// Spot position update
+	msTrack := true
+	mx, my := ebiten.Monitor().Size()
+	fmx, fmy := float32(mx), float32(my)
+	sx, sy := fmx/2, fmy/2
+
 	r.update = func() {
+		if !msTrack {
+			r.uniforms["LightPos"] = [2]float32{sx, sy}
+			return
+		}
+
 		x, y := ebiten.CursorPosition()
 		r.uniforms["LightPos"] = [2]float32{
 			float32(x),
 			float32(y),
 		}
 	}
+	spotX := preset.NewVariable(200, "X", sx, -200, fmx+200, 1, 0, func(p preset.Param[float32]) {
+		sx = p.Val()
+	})
+	spotY := preset.NewVariable(200, "Y", sy, -200, fmy+200, 1, 0, func(p preset.Param[float32]) {
+		sy = p.Val()
+	})
 
 	// Lighting
 	lights := preset.NewParamSet(0, "Lighting")
 
-	lights.Append(preset.NewVariable(1, "Ambient", 0.35, 0.0, 1.0, 0.01, 2, func(p preset.Param[float32]) {
+	lights.Append(preset.NewVariable(1, "Ambient", 0.35, 0.0, 1.0, 0.01, 2, func(p preset.Param[float32]) { // Todo add color
 		r.uniforms["Ambient"] = p.Val()
 	}))
 
-	lights.Append(preset.NewVariable(1, "Normal Strength", 70, 0.0, 500.0, 1, 0, func(p preset.Param[float32]) {
+	spot := preset.NewParamSet(0, "Spot")
+	spot.Append(preset.NewVariable(1, "Intensity", 1, 0.0, 2.0, 0.01, 2, func(p preset.Param[float32]) { // Todo add radius and color
+		r.uniforms["LightIntensity"] = p.Val()
+	}))
+	spot.Append(preset.NewParam(0, "Track mouse", true, func(p preset.Param[bool]) {
+		msTrack = p.Val()
+		if !msTrack {
+			spot.Append(spotX)
+			spot.Append(spotY)
+			return
+		}
+		spot.Remove(spotX)
+		spot.Remove(spotY)
+	}))
+	lights.Append(spot)
+
+	normals := preset.NewParamSet(0, "Normals")
+	normals.Append(preset.NewVariable(1, "Strength", 70, 0.0, 500.0, 1, 0, func(p preset.Param[float32]) {
 		r.uniforms["NormalStrength"] = p.Val()
 	}))
-	lights.Append(preset.NewVariable(1, "Normal Epsilon", 1, 1, world.ChunkApron, 1, 0, func(p preset.Param[float32]) {
+	normals.Append(preset.NewVariable(1, "Epsilon", 1, 1, world.ChunkApron, 1, 0, func(p preset.Param[float32]) {
 		r.uniforms["NormalEps"] = p.Val()
 	}))
+	lights.Append(normals)
 
 	r.ps.Append(lights)
 

@@ -21,7 +21,7 @@ func NewNoiseManager(r Receiver) *Manager {
 
 	m.params = preset.NewAnonymousParamSet()
 	m.params.Append(preset.NewAction(0, "Add Noise", func() {
-		m.AddNoise(NewNoise())
+		m.AddNoise(NewFastNoise())
 	}))
 
 	return m
