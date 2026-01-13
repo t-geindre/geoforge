@@ -3,28 +3,31 @@ package noise
 import "geoforge/preset"
 
 const (
-	ParamSeed             preset.ParamId = 100
-	ParamSeedLabel                       = "Seed"
-	ParamFrequency        preset.ParamId = 101
-	ParamFrequencyLabel                  = "Frequency"
-	ParamOctaves          preset.ParamId = 102
-	ParamOctavesLabel                    = "Octaves"
-	ParamLacunarity       preset.ParamId = 103
-	ParamLacunarityLabel                 = "Lacunarity"
-	ParamGain             preset.ParamId = 104
-	ParamGainLabel                       = "Gain"
-	ParamClampMin         preset.ParamId = 105
-	ParamClampMinLabel                   = "Clamp min"
-	ParamClampMax         preset.ParamId = 106
-	ParamClampMaxLabel                   = "Clamp max"
-	ParamFixedValue       preset.ParamId = 107
-	ParamFixedValueLabel                 = "Fixed value"
-	ParamPersistence      preset.ParamId = 108
-	ParamPersistenceLabel                = "Persistence"
-	ParamWarpFreq         preset.ParamId = 109
-	ParamWarpFreqLabel                   = "Warp Frequency"
-	ParamWarpAmount       preset.ParamId = 110
-	ParamWarpAmountLabel                 = "Warp Amount"
-	ParamWarpOctaves      preset.ParamId = 111
-	ParamWarpOctavesLabel                = "Warp Octaves"
+	SeedMin = 0
+	SeeMax  = 2147483647
+)
+
+const (
+	// Noise manager
+	ParamIsRendered   preset.ParamId = 100
+	ParamName         preset.ParamId = 101
+	ParamActionAdd    preset.ParamId = 102
+	ParamActionRemove preset.ParamId = 103
+	ParamType         preset.ParamId = 104
+
+	// Noise parameters
+	ParamSeed            preset.ParamId = 110
+	ParamSubType         preset.ParamId = 111
+	ParamScale           preset.ParamId = 112
+	ParamSetFract        preset.ParamId = 113
+	ParamFractType       preset.ParamId = 114
+	ParamFractOctaves    preset.ParamId = 115
+	ParamFractLacunarity preset.ParamId = 116
+	ParamFractGain       preset.ParamId = 117
+	ParamFractWeighting  preset.ParamId = 118
+	ParamFractPPStrength preset.ParamId = 123
+	ParamSetWarp         preset.ParamId = 119
+	ParamWarpType        preset.ParamId = 120
+	ParamWarpAmp         preset.ParamId = 121
+	ParamWarpFreq        preset.ParamId = 122
 )

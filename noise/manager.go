@@ -20,7 +20,7 @@ func NewNoiseManager(r Receiver) *Manager {
 	}
 
 	m.params = preset.NewAnonymousParamSet()
-	m.params.Append(preset.NewAction(0, "Add Noise", func() {
+	m.params.Append(preset.NewAction(ParamActionAdd, "Add Noise", func() {
 		m.AddNoise(NewFastNoise())
 	}))
 
@@ -35,40 +35,22 @@ func (m *Manager) AddNoise(n Noise) {
 		isRendered = true
 	}
 
-	n.Params().Prepend(preset.NewParam(1000, "Render", isRendered, func(p preset.Param[bool]) {
-		if p.Val() {
-			others := m.params.QueryParamById(1000)
-			for _, o := range others {
-				if o != p {
-					o.(preset.Param[bool]).SetVal(false)
-				}
-			}
-			m.receiver.SetNoise(n)
+	n.Params().Prepend(preset.NewParam(ParamIsRendered, "Render", isRendered, func(p preset.Param[bool]) {
+		if !p.Val() {
+			m.receiver.SetNoise(nil)
 			return
 		}
-
-		// Prevent disabling all noises
-		others := m.params.QueryParamById(1000)
-		anyRendered := false
-		for _, o := range others {
-			if o != p && o.(preset.Param[bool]).Val() {
-				anyRendered = true
-				break
-			}
-		}
-		if !anyRendered {
-			p.SetVal(true)
-		}
+		m.receiver.SetNoise(n)
 	}))
 
 	// Label
 	n.Params().SetLabel("Unnamed")
-	n.Params().Prepend(preset.NewParam(0, "Name", n.Params().Label(), func(p preset.Param[string]) {
+	n.Params().Prepend(preset.NewParam(ParamName, "Name", n.Params().Label(), func(p preset.Param[string]) {
 		n.Params().SetLabel(p.Val())
 	}))
 
 	// Add remove action
-	n.Params().Append(preset.NewAction(1, "Remove Noise", func() {
+	n.Params().Append(preset.NewAction(ParamActionRemove, "Remove Noise", func() {
 		m.RemoveNoise(n)
 	}))
 
@@ -79,10 +61,10 @@ func (m *Manager) AddNoise(n Noise) {
 
 func (m *Manager) RemoveNoise(n Noise) {
 	// Remove from list
-	newNoises := []Noise{}
-	for _, noise := range m.noises {
-		if noise != n {
-			newNoises = append(newNoises, noise)
+	var newNoises []Noise
+	for _, ns := range m.noises {
+		if ns != n {
+			newNoises = append(newNoises, ns)
 		}
 	}
 	m.noises = newNoises
@@ -91,8 +73,7 @@ func (m *Manager) RemoveNoise(n Noise) {
 	m.params.Remove(n.Params())
 
 	// If rendered, disable
-	rendered := n.Params().QueryParamById(1000)[0].(preset.Param[bool]).Val()
-	if rendered {
+	if n.Params().QueryParamById(ParamIsRendered)[0].(preset.Param[bool]).Val() {
 		m.receiver.SetNoise(nil)
 	}
 }

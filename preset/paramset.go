@@ -4,6 +4,7 @@ type ParamSet interface {
 	ParamGeneric
 	Append(p ...ParamGeneric)
 	Prepend(p ...ParamGeneric)
+	Add(after ParamId, params ...ParamGeneric)
 	Remove(p ...ParamGeneric)
 	All() []ParamGeneric
 	SetLabel(label string)
@@ -34,12 +35,6 @@ func (p *paramSet) Id() ParamId {
 
 func (p *paramSet) Label() string {
 	return p.label
-}
-
-func (p *paramSet) Append(params ...ParamGeneric) {
-	for _, pr := range params {
-		p.set = append(p.set, pr)
-	}
 }
 
 func (p *paramSet) Prepend(params ...ParamGeneric) {
@@ -97,5 +92,28 @@ func (p *paramSet) Remove(params ...ParamGeneric) {
 				break
 			}
 		}
+	}
+}
+
+func (p *paramSet) Append(params ...ParamGeneric) {
+	for _, pr := range params {
+		p.set = append(p.set, pr)
+	}
+}
+
+func (p *paramSet) Add(after ParamId, params ...ParamGeneric) {
+	index := -1
+	for i, pm := range p.set {
+		if pm.Id() == after {
+			index = i
+			break
+		}
+	}
+	if index != -1 {
+		// Insert after the found index
+		p.set = append(p.set[:index+1], append(params, p.set[index+1:]...)...)
+	} else {
+		// If not found, append to the end
+		p.Append(params...)
 	}
 }
