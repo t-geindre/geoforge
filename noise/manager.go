@@ -31,19 +31,24 @@ func NewNoiseManager(r Receiver) *Manager {
 }
 
 func (m *Manager) AddNoise(n Noise) {
-	// Rendering
-	isRendered := false
-	if len(m.noises) == 0 {
-		m.receiver.SetNoise(n)
-		isRendered = true
-	}
-
-	n.Params().Prepend(preset.NewParam(ParamIsRendered, "Render", isRendered, func(p preset.Param[bool]) {
-		if !p.Val() {
-			m.receiver.SetNoise(nil)
+	first := true
+	n.Params().Prepend(preset.NewParam(ParamIsRendered, "Render", len(m.noises) == 0, func(p preset.Param[bool]) {
+		if p.Val() {
+			for _, op := range m.params.QueryParamById(ParamIsRendered) {
+				if op != p {
+					op.(preset.Param[bool]).SetVal(false)
+				}
+			}
+			m.receiver.SetNoise(n)
 			return
 		}
-		m.receiver.SetNoise(n)
+		// Avoid disabling the noise when first added
+		if first {
+			first = false
+			return
+		}
+
+		m.receiver.SetNoise(nil)
 	}))
 
 	// Label

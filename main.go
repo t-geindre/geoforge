@@ -17,6 +17,7 @@ func main() {
 
 	rdr := render.NewRenderer()
 	wld := world.NewWorld(2)
+	defer wld.Close()
 
 	nmg := noise.NewNoiseManager(wld)
 

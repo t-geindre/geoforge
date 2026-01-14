@@ -31,7 +31,7 @@ type World struct {
 }
 
 func NewWorld(margin int) *World {
-	ws := runtime.NumCPU()
+	ws := runtime.NumCPU() / 2
 
 	w := &World{
 		margin:  float64(margin) * ChunkSize,
@@ -137,28 +137,24 @@ func (w *World) evict(rect geo.Rect) {
 }
 
 func (w *World) worker() {
-	hm := make([]float32, ChunkSurface)
-
 	for q := range w.query {
-		baseX := q.id.X*ChunkSize - ChunkApron
-		baseY := q.id.Y*ChunkSize - ChunkApron
-
 		ns := w.Noise()
 		if ns == nil {
 			continue
 		}
 
-		ns.Fill(hm, ChunkDimSize, float32(baseX), float32(baseY))
+		baseX := q.id.X*ChunkSize - ChunkApron
+		baseY := q.id.Y*ChunkSize - ChunkApron
 
 		hmp := w.hmPool.Get().([]byte)
-		for i := range hm {
-			n := hm[i]
-			n = (n + 1) / 2 // normalize to 0..1
-			v := byte(n * 255)
-			hmp[i*4+0] = v
-			hmp[i*4+1] = v
-			hmp[i*4+2] = v
-			hmp[i*4+3] = 255
+
+		for y := 0; y < ChunkDimSize; y++ {
+			for x := 0; x < ChunkDimSize; x++ {
+				v := ns.At(float32(baseX+x), float32(baseY+y))
+				b := byte((v + 1) / 2 * 255) // normalize to 0..255
+				idx := (y*ChunkDimSize + x) * 4
+				hmp[idx] = b // R channel only
+			}
 		}
 
 		w.results <- result{
@@ -182,4 +178,8 @@ func (w *World) Noise() noise.Noise {
 	defer w.noiseMu.RUnlock()
 
 	return w.noise
+}
+
+func (w *World) Close() {
+	close(w.query)
 }
