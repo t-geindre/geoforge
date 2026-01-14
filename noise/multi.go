@@ -35,6 +35,11 @@ func NewMultiNoise(noises ...Noise) Noise {
 
 	return &m
 }
+
+func (m MultiNoise) At(x, y float32) float32 {
+	return m.noises[m.current].At(x, y)
+}
+
 func (m MultiNoise) Fill(dst []float32, size int, x0, y0 float32) {
 	m.noises[m.current].Fill(dst, size, x0, y0)
 }

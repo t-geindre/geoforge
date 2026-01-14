@@ -24,6 +24,14 @@ func NewFastNoise() Noise {
 	return n
 }
 
+func (n *fastNoise) At(x, y float32) float32 {
+	px, py := x, y
+	if n.doWarp {
+		px, py = n.fsw.DomainWarp2D(px, py)
+	}
+	return n.fsn.GetNoise2D(px, py)
+}
+
 func (n *fastNoise) Fill(dst []float32, size int, x0, y0 float32) {
 	idx := 0
 	for y := 0; y < size; y++ {
