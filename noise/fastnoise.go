@@ -32,21 +32,6 @@ func (n *fastNoise) At(x, y float32) float32 {
 	return n.fsn.GetNoise2D(px, py)
 }
 
-func (n *fastNoise) Fill(dst []float32, size int, x0, y0 float32) {
-	idx := 0
-	for y := 0; y < size; y++ {
-		for x := 0; x < size; x++ {
-			px := x0 + float32(x)
-			py := y0 + float32(y)
-			if n.doWarp {
-				px, py = n.fsw.DomainWarp2D(px, py)
-			}
-			dst[idx] = n.fsn.GetNoise2D(px, py)
-			idx++
-		}
-	}
-}
-
 func (n *fastNoise) Params() preset.ParamSet {
 	return n.ps
 }

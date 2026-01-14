@@ -1,11 +1,16 @@
 package noise
 
-import "geoforge/preset"
+import (
+	"geoforge/preset"
+)
 
 type Receiver interface {
 	SetNoise(n Noise)
 	MarkDirty()
 }
+
+const defaultName = "Unnamed"
+const noiseNone = -1
 
 type Manager struct {
 	noises   []Noise
@@ -15,7 +20,7 @@ type Manager struct {
 
 func NewNoiseManager(r Receiver) *Manager {
 	m := &Manager{
-		noises:   []Noise{},
+		noises:   make([]Noise, 0),
 		receiver: r,
 	}
 
@@ -24,6 +29,7 @@ func NewNoiseManager(r Receiver) *Manager {
 		m.AddNoise(NewMultiNoise(
 			NewFastNoise(),
 			NewSine(),
+			NewMask(),
 		))
 	}))
 
@@ -52,14 +58,14 @@ func (m *Manager) AddNoise(n Noise) {
 	}))
 
 	// Label
-	n.Params().SetLabel("Unnamed")
+	n.Params().SetLabel(defaultName)
 	n.Params().Prepend(preset.NewParam(ParamName, "Name", n.Params().Label(), func(p preset.Param[string]) {
-		if p.Val() == "" {
-			p.SetVal("Unnamed")
-			return
+		v := p.Val()
+		if v == "" {
+			v = defaultName
 		}
 
-		n.Params().SetLabel(p.Val())
+		n.Params().SetLabel(v)
 	}))
 
 	// Add remove action
@@ -97,6 +103,35 @@ func (m *Manager) Params() preset.ParamSet {
 
 func (m *Manager) Update() {
 	if m.params.HasChanged() {
+		m.noiseInjection(m.params)
 		m.receiver.MarkDirty()
 	}
+}
+
+func (m *Manager) noiseInjection(p preset.ParamSet) {
+	for _, pm := range p.All() {
+		switch tpm := pm.(type) {
+		case preset.Choice[Noise]:
+			tpm.SetOptions(m.noiseOptions())
+		case preset.Param[Noise]:
+			p.Replace(tpm, m.addNoiseChoice(tpm))
+		case preset.ParamSet:
+			m.noiseInjection(tpm)
+		}
+	}
+}
+
+func (m *Manager) addNoiseChoice(pm preset.Param[Noise]) preset.Choice[Noise] {
+	return preset.NewChoice(pm.Id(), pm.Label(), nil, m.noiseOptions(), func(p preset.Param[Noise]) {
+		pm.SetVal(p.Val())
+	})
+}
+
+func (m *Manager) noiseOptions() []preset.Option[Noise] {
+	opts := make([]preset.Option[Noise], 0, len(m.noises)+1)
+	opts = append(opts, preset.NewOption[Noise](nil, "None"))
+	for _, ns := range m.noises {
+		opts = append(opts, preset.NewOption[Noise](ns, ns.Params().Label()))
+	}
+	return opts
 }

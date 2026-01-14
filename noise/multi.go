@@ -27,8 +27,10 @@ func NewMultiNoise(noises ...Noise) Noise {
 			m.ps.Append(m.noises[p.Val()].Params())
 		} else {
 			// Switch, remove old noise params, append new noise params
-			m.ps.Add(m.noises[m.current].Params().Id(), m.noises[p.Val()].Params())
-			m.ps.Remove(m.noises[m.current].Params())
+			m.ps.Replace(
+				m.noises[m.current].Params(),
+				m.noises[p.Val()].Params(),
+			)
 		}
 		m.current = p.Val()
 	}))
@@ -38,10 +40,6 @@ func NewMultiNoise(noises ...Noise) Noise {
 
 func (m MultiNoise) At(x, y float32) float32 {
 	return m.noises[m.current].At(x, y)
-}
-
-func (m MultiNoise) Fill(dst []float32, size int, x0, y0 float32) {
-	m.noises[m.current].Fill(dst, size, x0, y0)
 }
 
 func (m MultiNoise) Params() preset.ParamSet {

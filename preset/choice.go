@@ -7,12 +7,12 @@ type ChoiceGeneric interface {
 	ValIndex() int
 }
 
-type Option[T Numeric] struct {
+type Option[T comparable] struct {
 	val   T
 	label string
 }
 
-func NewOption[T Numeric](val T, label string) Option[T] {
+func NewOption[T comparable](val T, label string) Option[T] {
 	return Option[T]{val: val, label: label}
 }
 
@@ -24,17 +24,18 @@ func (o Option[T]) Label() string {
 	return o.label
 }
 
-type Choice[T Numeric] interface {
+type Choice[T comparable] interface {
 	Param[T]
 	Options() []Option[T]
+	SetOptions(opts []Option[T])
 }
 
-type choice[T Numeric] struct {
+type choice[T comparable] struct {
 	Param[T]
 	options []Option[T]
 }
 
-func NewChoice[T Numeric](id ParamId, label string, val T, opts []Option[T], onChange func(Param[T])) Choice[T] {
+func NewChoice[T comparable](id ParamId, label string, val T, opts []Option[T], onChange func(Param[T])) Choice[T] {
 	c := &choice[T]{
 		Param:   NewParam[T](id, label, val, onChange),
 		options: opts,
@@ -44,6 +45,13 @@ func NewChoice[T Numeric](id ParamId, label string, val T, opts []Option[T], onC
 
 func (c *choice[T]) Options() []Option[T] {
 	return c.options
+}
+
+func (c *choice[T]) SetOptions(opts []Option[T]) {
+	c.options = opts
+	if c.ValIndex() == -1 && len(opts) > 0 {
+		c.SetVal(opts[0].Val())
+	}
 }
 
 func (c *choice[T]) OptionsLabels() []string {

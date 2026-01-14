@@ -6,6 +6,7 @@ type ParamSet interface {
 	Prepend(p ...ParamGeneric)
 	Add(after ParamId, params ...ParamGeneric)
 	Remove(p ...ParamGeneric)
+	Replace(old, new ParamGeneric)
 	All() []ParamGeneric
 	SetLabel(label string)
 	QueryParamById(id ParamId) []ParamGeneric
@@ -14,9 +15,10 @@ type ParamSet interface {
 }
 
 type paramSet struct {
-	set   []ParamGeneric
-	id    ParamId
-	label string
+	set     []ParamGeneric
+	id      ParamId
+	label   string
+	changed bool
 }
 
 func NewAnonymousParamSet() ParamSet {
@@ -39,9 +41,11 @@ func (p *paramSet) Label() string {
 }
 
 func (p *paramSet) Prepend(params ...ParamGeneric) {
+	p.changed = true
 	for _, pr := range params {
 		p.set = append([]ParamGeneric{pr}, p.set...)
 	}
+
 }
 
 func (p *paramSet) All() []ParamGeneric {
@@ -50,7 +54,9 @@ func (p *paramSet) All() []ParamGeneric {
 
 // HasChanged since last call
 func (p *paramSet) HasChanged() bool {
-	changed := false
+	changed := p.changed
+	p.changed = false
+
 	for _, pm := range p.set {
 		if pm.HasChanged() {
 			// range over all to reset their states
@@ -62,6 +68,7 @@ func (p *paramSet) HasChanged() bool {
 
 func (p *paramSet) SetLabel(label string) {
 	p.label = label
+	p.changed = true
 }
 
 func (p *paramSet) QueryParamById(id ParamId) []ParamGeneric {
@@ -81,6 +88,7 @@ func (p *paramSet) QueryParamById(id ParamId) []ParamGeneric {
 }
 
 func (p *paramSet) Clear() {
+	p.changed = true
 	p.set = []ParamGeneric{}
 }
 
@@ -90,6 +98,7 @@ func (p *paramSet) Remove(params ...ParamGeneric) {
 			if pm == toRemove {
 				// Remove the parameter by slicing
 				p.set = append(p.set[:i], p.set[i+1:]...)
+				p.changed = true
 				break
 			}
 		}
@@ -97,12 +106,14 @@ func (p *paramSet) Remove(params ...ParamGeneric) {
 }
 
 func (p *paramSet) Append(params ...ParamGeneric) {
+	p.changed = true
 	for _, pr := range params {
 		p.set = append(p.set, pr)
 	}
 }
 
 func (p *paramSet) Add(after ParamId, params ...ParamGeneric) {
+	p.changed = true
 	index := -1
 	for i, pm := range p.set {
 		if pm.Id() == after {
@@ -121,4 +132,14 @@ func (p *paramSet) Add(after ParamId, params ...ParamGeneric) {
 
 func (p *paramSet) IsAnonymous() bool {
 	return p.label == ""
+}
+
+func (p *paramSet) Replace(old, new ParamGeneric) {
+	for i, pm := range p.set {
+		if pm == old {
+			p.changed = true
+			p.set[i] = new
+			return
+		}
+	}
 }
