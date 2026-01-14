@@ -132,9 +132,14 @@ func (p *paramSet) handle(ctx *debugui.Context, pms []preset.ParamGeneric) {
 			})
 
 		case preset.ParamSet:
-			ctx.TreeNode(tp.Label(), func() {
+			if tp.IsAnonymous() {
 				p.handle(ctx, tp.All())
-			})
+			} else {
+				ctx.TreeNode(tp.Label(), func() {
+					p.handle(ctx, tp.All())
+				})
+			}
+
 		}
 	})
 }

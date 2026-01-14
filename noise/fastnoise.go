@@ -6,6 +6,13 @@ import (
 	fastnoise "github.com/Auburn/FastNoiseLite/Go"
 )
 
+type fastNoise struct {
+	fsn    *fastnoise.State[float32]
+	fsw    *fastnoise.State[float32]
+	doWarp bool
+	ps     preset.ParamSet
+}
+
 func NewFastNoise() Noise {
 	n := &fastNoise{
 		fsn: fastnoise.New[float32](),
@@ -153,4 +160,8 @@ func (n *fastNoise) buildParams() {
 	}))
 
 	n.ps.Append(warp)
+}
+
+func (n *fastNoise) Name() string {
+	return "Fast noise lite"
 }

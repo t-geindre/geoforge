@@ -20,8 +20,11 @@ func NewNoiseManager(r Receiver) *Manager {
 	}
 
 	m.params = preset.NewAnonymousParamSet()
-	m.params.Append(preset.NewAction(ParamActionAdd, "Add Noise", func() {
-		m.AddNoise(NewFastNoise())
+	m.params.Append(preset.NewAction(ParamActionAdd, "Add Noise", func(preset.Action) {
+		m.AddNoise(NewMultiNoise(
+			NewFastNoise(),
+			NewSine(),
+		))
 	}))
 
 	return m
@@ -46,11 +49,16 @@ func (m *Manager) AddNoise(n Noise) {
 	// Label
 	n.Params().SetLabel("Unnamed")
 	n.Params().Prepend(preset.NewParam(ParamName, "Name", n.Params().Label(), func(p preset.Param[string]) {
+		if p.Val() == "" {
+			p.SetVal("Unnamed")
+			return
+		}
+
 		n.Params().SetLabel(p.Val())
 	}))
 
 	// Add remove action
-	n.Params().Append(preset.NewAction(ParamActionRemove, "Remove Noise", func() {
+	n.Params().Append(preset.NewAction(ParamActionRemove, "Remove Noise", func(preset.Action) {
 		m.RemoveNoise(n)
 	}))
 

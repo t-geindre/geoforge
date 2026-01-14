@@ -10,6 +10,7 @@ type ParamSet interface {
 	SetLabel(label string)
 	QueryParamById(id ParamId) []ParamGeneric
 	Clear()
+	IsAnonymous() bool
 }
 
 type paramSet struct {
@@ -116,4 +117,8 @@ func (p *paramSet) Add(after ParamId, params ...ParamGeneric) {
 		// If not found, append to the end
 		p.Append(params...)
 	}
+}
+
+func (p *paramSet) IsAnonymous() bool {
+	return p.label == ""
 }

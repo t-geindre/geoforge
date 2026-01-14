@@ -8,10 +8,10 @@ type Action interface {
 type action struct {
 	id      ParamId
 	label   string
-	execute func()
+	execute func(Action)
 }
 
-func NewAction(id ParamId, label string, execute func()) Action {
+func NewAction(id ParamId, label string, execute func(Action)) Action {
 	return &action{
 		id:      id,
 		label:   label,
@@ -20,7 +20,7 @@ func NewAction(id ParamId, label string, execute func()) Action {
 }
 
 func (a *action) Execute() {
-	a.execute()
+	a.execute(a)
 }
 
 func (a *action) Id() ParamId {
