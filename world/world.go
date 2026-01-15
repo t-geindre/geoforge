@@ -8,8 +8,9 @@ import (
 )
 
 type query struct {
-	id  ChunkId
-	gen uint64 // chunk generation, avoid stale
+	id    ChunkId
+	gen   uint64 // chunk generation, avoid stale
+	noise noise.Noise
 }
 
 type result struct {
@@ -26,8 +27,7 @@ type World struct {
 	results chan result
 	hmPool  sync.Pool
 
-	noise   noise.Noise
-	noiseMu sync.RWMutex
+	noise noise.Noise
 }
 
 func NewWorld(margin int) *World {
@@ -79,7 +79,7 @@ func (w *World) MarkDirty() {
 }
 
 func (w *World) generateHeightMaps() {
-	if w.Noise() == nil {
+	if w.noise == nil {
 		return
 	}
 
@@ -87,8 +87,9 @@ func (w *World) generateHeightMaps() {
 		if c.Is(ChunkStateDirty) {
 			select {
 			case w.query <- query{
-				id:  c.Id(),
-				gen: c.GetGeneration(),
+				id:    c.Id(),
+				gen:   c.GetGeneration(),
+				noise: w.noise,
 			}:
 				c.SetState(ChunkStateQueued)
 			default:
@@ -137,23 +138,22 @@ func (w *World) evict(rect geo.Rect) {
 }
 
 func (w *World) worker() {
-	for q := range w.query {
-		ns := w.Noise()
-		if ns == nil {
-			continue
-		}
+	const normalizeFactor = 127.5 // (v + 1) * 127.5 = (v + 1) / 2 * 255
+	const offset = 127.5
 
+	for q := range w.query {
 		baseX := q.id.X*ChunkSize - ChunkApron
 		baseY := q.id.Y*ChunkSize - ChunkApron
 
 		hmp := w.hmPool.Get().([]byte)
 
+		idx := 0
 		for y := 0; y < ChunkDimSize; y++ {
 			for x := 0; x < ChunkDimSize; x++ {
-				v := ns.At(float32(baseX+x), float32(baseY+y))
-				b := byte((v + 1) / 2 * 255) // normalize to 0..255
-				idx := (y*ChunkDimSize + x) * 4
-				hmp[idx] = b // R channel only
+				v := q.noise.At(float32(baseX+x), float32(baseY+y))
+				b := byte(v*normalizeFactor + offset) // 0..255
+				hmp[idx] = b                          // R channel only
+				idx += 4
 			}
 		}
 
@@ -166,17 +166,11 @@ func (w *World) worker() {
 }
 
 func (w *World) SetNoise(n noise.Noise) {
-	w.noiseMu.Lock()
 	w.noise = n
-	w.noiseMu.Unlock()
-
 	w.MarkDirty()
 }
 
 func (w *World) Noise() noise.Noise {
-	w.noiseMu.RLock()
-	defer w.noiseMu.RUnlock()
-
 	return w.noise
 }
 
