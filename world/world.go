@@ -31,7 +31,7 @@ type World struct {
 }
 
 func NewWorld(margin int) *World {
-	ws := runtime.NumCPU() / 2
+	ws := runtime.NumCPU()
 
 	w := &World{
 		margin:  float64(margin) * ChunkSize,
