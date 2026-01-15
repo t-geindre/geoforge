@@ -103,34 +103,45 @@ func (m *Manager) Params() preset.ParamSet {
 
 func (m *Manager) Update() {
 	if m.params.HasChanged() {
-		m.noiseInjection(m.params)
+		m.injectNoiseChoices(m.params, nil)
 		m.receiver.MarkDirty()
 	}
 }
 
-func (m *Manager) noiseInjection(p preset.ParamSet) {
+func (m *Manager) injectNoiseChoices(p preset.ParamSet, owner Noise) {
 	for _, pm := range p.All() {
 		switch tpm := pm.(type) {
 		case preset.Choice[Noise]:
-			tpm.SetOptions(m.noiseOptions())
+			tpm.SetOptions(m.noiseOptions(owner))
 		case preset.Param[Noise]:
-			p.Replace(tpm, m.addNoiseChoice(tpm))
+			p.Replace(tpm, m.noiseChoice(tpm, owner))
 		case preset.ParamSet:
-			m.noiseInjection(tpm)
+			if owner == nil {
+				for _, ns := range m.noises {
+					if ns.Params() == p {
+						owner = ns
+						break
+					}
+				}
+			}
+			m.injectNoiseChoices(tpm, owner)
 		}
 	}
 }
 
-func (m *Manager) addNoiseChoice(pm preset.Param[Noise]) preset.Choice[Noise] {
-	return preset.NewChoice(pm.Id(), pm.Label(), nil, m.noiseOptions(), func(p preset.Param[Noise]) {
+func (m *Manager) noiseChoice(pm preset.Param[Noise], owner Noise) preset.Choice[Noise] {
+	return preset.NewChoice(pm.Id(), pm.Label(), nil, m.noiseOptions(owner), func(p preset.Param[Noise]) {
 		pm.SetVal(p.Val())
 	})
 }
 
-func (m *Manager) noiseOptions() []preset.Option[Noise] {
+func (m *Manager) noiseOptions(owner Noise) []preset.Option[Noise] {
 	opts := make([]preset.Option[Noise], 0, len(m.noises)+1)
 	opts = append(opts, preset.NewOption[Noise](nil, "None"))
 	for _, ns := range m.noises {
+		if ns == owner {
+			continue
+		}
 		opts = append(opts, preset.NewOption[Noise](ns, ns.Params().Label()))
 	}
 	return opts

@@ -85,7 +85,7 @@ func (n *fastNoise) buildParams() {
 		}
 	}))
 
-	n.ps.Append(preset.NewVariable(ParamScale, "Scale", 0.0005, 0.0001, 0.15, 0.0001, 4, func(p preset.Param[float32]) {
+	n.ps.Append(preset.NewVariable(ParamScale, "Scale", 0.0005, 0.0001, 0.02, 0.0001, 4, func(p preset.Param[float32]) {
 		n.fsn.Frequency = p.Val()
 	}))
 

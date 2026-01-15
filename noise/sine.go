@@ -14,7 +14,7 @@ func NewSine() Noise {
 	s := &sine{}
 
 	s.ps = preset.NewAnonymousParamSet()
-	s.ps.Append(preset.NewVariable(0, "Scale", 0.1, 0.001, .5, 0.001, 3, func(p preset.Param[float32]) {
+	s.ps.Append(preset.NewVariable(0, "Scale", 0.1, 0.00001, .2, 0.00001, 5, func(p preset.Param[float32]) {
 		s.freq = p.Val()
 	}))
 
