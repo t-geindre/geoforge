@@ -1,6 +1,7 @@
 package world
 
 import (
+	"geoforge/cam"
 	"geoforge/geo"
 	"geoforge/noise"
 	"runtime"
@@ -28,9 +29,12 @@ type World struct {
 	hmPool  sync.Pool
 
 	noise noise.Noise
+
+	cam   cam.Camera
+	camSt uint8
 }
 
-func NewWorld(margin int) *World {
+func NewWorld(margin int, cam cam.Camera) *World {
 	ws := runtime.NumCPU()
 
 	w := &World{
@@ -38,6 +42,8 @@ func NewWorld(margin int) *World {
 		chunks:  make(map[ChunkId]*Chunk),
 		query:   make(chan query, ws*2),
 		results: make(chan result, ws*2),
+		cam:     cam,
+		camSt:   cam.RegisterChangeId(),
 		hmPool: sync.Pool{
 			New: func() any {
 				return make([]byte, 4*ChunkSurface)
@@ -52,17 +58,20 @@ func NewWorld(margin int) *World {
 	return w
 }
 
-func (w *World) Update(rect geo.Rect) {
-	rect = rect.Expand(w.margin).SnapOut(ChunkSize)
+func (w *World) Update() {
+	if w.cam.HasChanged(w.camSt) {
+		rect := w.cam.WorldRect().Expand(w.margin).SnapOut(ChunkSize)
 
-	for y := rect.MinY; y < rect.MaxY; y += ChunkSize {
-		for x := rect.MinX; x < rect.MaxX; x += ChunkSize {
-			id := NewChunkId(int(x/ChunkSize), int(y/ChunkSize))
-			w.ensure(id)
+		for y := rect.MinY; y < rect.MaxY; y += ChunkSize {
+			for x := rect.MinX; x < rect.MaxX; x += ChunkSize {
+				id := NewChunkId(int(x/ChunkSize), int(y/ChunkSize))
+				w.ensure(id)
+			}
 		}
+
+		w.evict(rect)
 	}
 
-	w.evict(rect)
 	w.generateHeightMaps()
 	w.storeHeightMaps()
 }

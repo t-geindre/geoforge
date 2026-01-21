@@ -42,3 +42,8 @@ func (r Rect) SnapOut(size float64) Rect {
 		MaxY: ceilTo(r.MaxY, size),
 	}
 }
+
+func (r Rect) Equals(other Rect) bool {
+	return r.MinX == other.MinX && r.MinY == other.MinY &&
+		r.MaxX == other.MaxX && r.MaxY == other.MaxY
+}

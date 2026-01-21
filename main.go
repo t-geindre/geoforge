@@ -15,13 +15,13 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.MaximizeWindow()
 
+	camera := cam.NewWheelZoom(cam.NewMousePan(cam.NewCamera()))
+
 	rdr := render.NewRenderer()
-	wld := world.NewWorld(2)
+	wld := world.NewWorld(2, camera)
 	defer wld.Close()
 
 	nmg := noise.NewNoiseManager(wld)
-
-	camera := cam.NewWheelZoom(cam.NewMousePan(cam.NewCamera()))
 
 	// Metrics
 	mStyle := ui.DefaultGraphStyle()
@@ -54,9 +54,7 @@ func main() {
 
 	err := ebiten.RunGame(game.NewGame(
 		game.NewUpdateFunc(func() {
-			wld.Update(camera.WorldRect())
 			if !gui.Update() {
-				// Window not capturing events
 				camera.Update()
 			}
 		}),
@@ -70,6 +68,7 @@ func main() {
 		gui,
 		nmg,
 		rdr,
+		wld,
 	))
 
 	if err != nil {

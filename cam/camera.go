@@ -1,6 +1,7 @@
 package cam
 
 import (
+	"geoforge/game"
 	"geoforge/geo"
 )
 
@@ -17,27 +18,36 @@ type Camera interface {
 	Zoom() float64
 	Update()
 	Reset()
+	game.StateChanged
 }
 
 type camera struct {
 	x, y float64 // World coordinates
 	zoom float64 // 1 = 100%, >1 = zoom in, <1 = zoom out
 	w, h int     // Viewport size, pixels
+	game.StateChanged
 }
 
 func NewCamera() Camera {
 	return &camera{
-		x:    0,
-		y:    0,
-		zoom: 1,
-		w:    800,
-		h:    600,
+		x:            0,
+		y:            0,
+		zoom:         1,
+		w:            800,
+		h:            600,
+		StateChanged: game.NewStateChanged(),
 	}
 }
 
 func (c *camera) SetViewport(w, h int) {
+	if c.w == w && c.h == h {
+		return
+	}
+
 	c.w = w
 	c.h = h
+
+	c.SetChanged()
 }
 
 func (c *camera) WorldRect() geo.Rect {
@@ -54,23 +64,33 @@ func (c *camera) Position() (x, y float64) {
 func (c *camera) WorldToScreen(wx, wy float64) (sx, sy float64) {
 	sx = (wx-c.x)*c.zoom + float64(c.w)/2
 	sy = (wy-c.y)*c.zoom + float64(c.h)/2
+
 	return
 }
 
 func (c *camera) ScreenToWorld(sx, sy float64) (wx, wy float64) {
 	wx = (sx-float64(c.w)/2)/c.zoom + c.x
 	wy = (sy-float64(c.h)/2)/c.zoom + c.y
+
 	return
 }
 
 func (c *camera) Move(dx, dy float64) {
 	c.x += dx
 	c.y += dy
+
+	c.SetChanged()
 }
 
 func (c *camera) MoveTo(x, y float64) {
+	if c.x == x && c.y == y {
+		return
+	}
+
 	c.x = x
 	c.y = y
+
+	c.SetChanged()
 }
 
 func (c *camera) ZoomAt(factor float64, screenX, screenY float64) {
@@ -85,20 +105,25 @@ func (c *camera) ZoomAt(factor float64, screenX, screenY float64) {
 	// Center the camera to keep the point under the cursor fixed
 	c.x += wx - wx2
 	c.y += wy - wy2
+
+	c.SetChanged()
 }
 
 func (c *camera) SetZoom(zoom float64) {
 	if zoom <= 0 {
 		return
 	}
+
 	c.zoom = zoom
+	c.SetChanged()
 }
 
 func (c *camera) Zoom() float64 {
 	return c.zoom
 }
 
-func (c *camera) Update() {}
+func (c *camera) Update() {
+}
 
 func (c *camera) Reset() {
 	c.x = 0
