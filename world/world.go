@@ -179,10 +179,6 @@ func (w *World) SetNoise(n noise.Noise) {
 	w.MarkDirty()
 }
 
-func (w *World) Noise() noise.Noise {
-	return w.noise
-}
-
 func (w *World) Close() {
 	close(w.query)
 }
