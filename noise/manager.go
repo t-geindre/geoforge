@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"fmt"
 	"geoforge/preset"
 )
 
@@ -30,6 +31,10 @@ func NewNoiseManager(r Receiver) *Manager {
 			NewFastNoise(),
 			NewSine(),
 			NewMask(),
+			NewPow(),
+			NewClamp(),
+			NewMaths(),
+			NewWarp(),
 		))
 	}))
 
@@ -142,7 +147,11 @@ func (m *Manager) noiseOptions(owner Noise) []preset.Option[Noise] {
 		if ns == owner {
 			continue
 		}
-		opts = append(opts, preset.NewOption[Noise](ns, ns.Params().Label()))
+		ps := ns.Params()
+		nsType := ps.QueryParamById(ParamType)[0].(preset.ChoiceGeneric)
+		label := fmt.Sprintf("%s (%s)", ps.Label(), nsType.OptionsLabels()[nsType.ValIndex()])
+
+		opts = append(opts, preset.NewOption[Noise](ns, label))
 	}
 	return opts
 }

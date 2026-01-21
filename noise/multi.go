@@ -15,7 +15,7 @@ func NewMultiNoise(noises ...Noise) Noise {
 	}
 
 	m.ps = preset.NewAnonymousParamSet()
-	m.ps.Prepend(preset.NewChoice(0, "Noise type", 0, func() []preset.Option[int] {
+	m.ps.Prepend(preset.NewChoice(ParamType, "Noise type", 0, func() []preset.Option[int] {
 		opts := make([]preset.Option[int], len(noises))
 		for i, n := range noises {
 			opts[i] = preset.NewOption(i, n.Name())

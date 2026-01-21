@@ -7,6 +7,7 @@ type ParamSet interface {
 	Add(after ParamId, params ...ParamGeneric)
 	Remove(p ...ParamGeneric)
 	Replace(old, new ParamGeneric)
+	ReplaceById(id ParamId, new ParamGeneric)
 	All() []ParamGeneric
 	SetLabel(label string)
 	QueryParamById(id ParamId) []ParamGeneric
@@ -139,6 +140,15 @@ func (p *paramSet) Replace(old, new ParamGeneric) {
 		if pm == old {
 			p.changed = true
 			p.set[i] = new
+			return
+		}
+	}
+}
+
+func (p *paramSet) ReplaceById(id ParamId, new ParamGeneric) {
+	for _, pm := range p.set {
+		if pm.Id() == id {
+			p.Replace(pm, new)
 			return
 		}
 	}
