@@ -2,7 +2,7 @@ package render
 
 import (
 	_ "embed"
-	"geoforge/cam"
+	"geoforge/camera"
 	"geoforge/geo"
 	"geoforge/preset"
 	"geoforge/world"
@@ -18,10 +18,14 @@ type Renderer struct {
 	ps        preset.ParamSet
 	renderers []ChunkRenderer
 	current   int
+	world     *world.World
+	cam       camera.Camera
 }
 
-func NewRenderer() *Renderer {
+func NewRenderer(w *world.World, c camera.Camera) *Renderer {
 	r := &Renderer{
+		world: w,
+		cam:   c,
 		renderers: []ChunkRenderer{
 			NewColorScale(),
 			NewTerrain(),
@@ -37,17 +41,17 @@ func (r *Renderer) Update() {
 	r.renderers[r.current].Update()
 }
 
-func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
+func (r *Renderer) Draw(dst *ebiten.Image) {
 	r.drawn = 0
-	z := cam.Zoom()
+	z := r.cam.Zoom()
 	if z <= 0 {
 		return
 	}
 
 	csScreen := world.ChunkSize * z
-	worldRect := cam.WorldRect()
+	worldRect := r.cam.WorldRect()
 
-	for _, c := range w.Chunks() {
+	for _, c := range r.world.Chunks() {
 		wx := float64(c.Id().X) * world.ChunkSize
 		wy := float64(c.Id().Y) * world.ChunkSize
 
@@ -56,7 +60,7 @@ func (r *Renderer) Draw(w *world.World, cam cam.Camera, dst *ebiten.Image) {
 			continue
 		}
 
-		sx, sy := cam.WorldToScreen(wx, wy)
+		sx, sy := r.cam.WorldToScreen(wx, wy)
 		hm := c.GetHeightMap()
 
 		if c.Is(world.ChunkStateReady) {

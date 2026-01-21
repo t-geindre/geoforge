@@ -1,4 +1,4 @@
-package cam
+package camera
 
 import (
 	"geoforge/game"

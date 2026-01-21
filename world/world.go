@@ -1,7 +1,7 @@
 package world
 
 import (
-	"geoforge/cam"
+	"geoforge/camera"
 	"geoforge/geo"
 	"geoforge/noise"
 	"runtime"
@@ -30,11 +30,11 @@ type World struct {
 
 	noise noise.Noise
 
-	cam   cam.Camera
+	cam   camera.Camera
 	camSt uint8
 }
 
-func NewWorld(margin int, cam cam.Camera) *World {
+func NewWorld(margin int, cam camera.Camera) *World {
 	ws := runtime.NumCPU()
 
 	w := &World{
