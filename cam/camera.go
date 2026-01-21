@@ -18,13 +18,16 @@ type Camera interface {
 	Zoom() float64
 	Update()
 	Reset()
+	//Lock the camera position and zoom
+	Lock(bool)
 	game.StateChanged
 }
 
 type camera struct {
-	x, y float64 // World coordinates
-	zoom float64 // 1 = 100%, >1 = zoom in, <1 = zoom out
-	w, h int     // Viewport size, pixels
+	x, y   float64 // World coordinates
+	zoom   float64 // 1 = 100%, >1 = zoom in, <1 = zoom out
+	w, h   int     // Viewport size, pixels
+	locked bool
 	game.StateChanged
 }
 
@@ -76,6 +79,10 @@ func (c *camera) ScreenToWorld(sx, sy float64) (wx, wy float64) {
 }
 
 func (c *camera) Move(dx, dy float64) {
+	if c.locked {
+		return
+	}
+
 	c.x += dx
 	c.y += dy
 
@@ -83,7 +90,7 @@ func (c *camera) Move(dx, dy float64) {
 }
 
 func (c *camera) MoveTo(x, y float64) {
-	if c.x == x && c.y == y {
+	if c.locked || (c.x == x && c.y == y) {
 		return
 	}
 
@@ -94,7 +101,7 @@ func (c *camera) MoveTo(x, y float64) {
 }
 
 func (c *camera) ZoomAt(factor float64, screenX, screenY float64) {
-	if factor <= 0 {
+	if c.locked || factor <= 0 {
 		return
 	}
 
@@ -110,7 +117,7 @@ func (c *camera) ZoomAt(factor float64, screenX, screenY float64) {
 }
 
 func (c *camera) SetZoom(zoom float64) {
-	if zoom <= 0 {
+	if c.locked || zoom <= 0 {
 		return
 	}
 
@@ -129,4 +136,8 @@ func (c *camera) Reset() {
 	c.x = 0
 	c.y = 0
 	c.zoom = 1
+}
+
+func (c *camera) Lock(lock bool) {
+	c.locked = lock
 }

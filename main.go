@@ -54,9 +54,7 @@ func main() {
 
 	err := ebiten.RunGame(game.NewGame(
 		game.NewUpdateFunc(func() {
-			if !gui.Update() {
-				camera.Update()
-			}
+			camera.Lock(gui.Update())
 		}),
 		game.NewDrawFunc(func(screen *ebiten.Image) {
 			rdr.Draw(wld, camera, screen)
@@ -69,6 +67,7 @@ func main() {
 		nmg,
 		rdr,
 		wld,
+		camera,
 	))
 
 	if err != nil {
