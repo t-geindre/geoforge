@@ -17,12 +17,8 @@ const (
 const (
 	// ChunkSize size of the chunk without apron
 	ChunkSize = 256
-	// ChunkApron size of the apron around the chunk for seamless generation
-	ChunkApron = 10
-	// ChunkDimSize one dimension size including apron (X or Y)
-	ChunkDimSize = ChunkSize + 2*ChunkApron
 	// ChunkSurface total surface including apron (X * Y)
-	ChunkSurface = ChunkDimSize * ChunkDimSize
+	ChunkSurface = ChunkSize * ChunkSize
 )
 
 type Chunk struct {
@@ -36,7 +32,7 @@ func NewChunk(id ChunkId) *Chunk {
 	return &Chunk{
 		id:    id,
 		state: ChunkStateDirty,
-		hm:    ebiten.NewImage(ChunkDimSize, ChunkDimSize),
+		hm:    ebiten.NewImage(ChunkSize, ChunkSize),
 	}
 }
 

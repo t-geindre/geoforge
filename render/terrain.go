@@ -3,7 +3,6 @@ package render
 import (
 	_ "embed"
 	"geoforge/preset"
-	"geoforge/world"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -72,7 +71,7 @@ func NewTerrain() ChunkRenderer {
 	normals.Append(preset.NewVariable(1, "Strength", 70, 0.0, 500.0, 1, 0, func(p preset.Param[float32]) {
 		r.uniforms["NormalStrength"] = p.Val()
 	}))
-	normals.Append(preset.NewVariable(1, "Epsilon", 1, 1, world.ChunkApron, 1, 0, func(p preset.Param[float32]) {
+	normals.Append(preset.NewVariable(1, "Epsilon", 1, 1, 10, 1, 0, func(p preset.Param[float32]) {
 		r.uniforms["NormalEps"] = p.Val()
 	}))
 	lights.Append(normals)

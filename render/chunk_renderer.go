@@ -7,7 +7,7 @@ import (
 )
 
 type ChunkRenderer interface {
-	DrawChunk(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions)
+	Draw(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions)
 	Update()
 	Params() preset.ParamSet
 	Name() string
@@ -36,7 +36,7 @@ func newChunkRenderer(name string, shader []byte) *chunkRenderer {
 	}
 }
 
-func (g *chunkRenderer) DrawChunk(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions) {
+func (g *chunkRenderer) Draw(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions) {
 	for k, v := range g.uniforms {
 		op.Uniforms[k] = v
 	}

@@ -7,6 +7,7 @@ import (
 
 type Camera interface {
 	SetViewport(w, h int)
+	GetViewport() (w, h int)
 	WorldRect() geo.Rect
 	WorldToScreen(wx, wy float64) (sx, sy float64)
 	ScreenToWorld(sx, sy float64) (wx, wy float64)
@@ -53,6 +54,10 @@ func (c *camera) SetViewport(w, h int) {
 	c.SetChanged()
 }
 
+func (c *camera) GetViewport() (w, h int) {
+	return c.w, c.h
+}
+
 func (c *camera) WorldRect() geo.Rect {
 	halfW := float64(c.w) * 0.5 / c.zoom
 	halfH := float64(c.h) * 0.5 / c.zoom
@@ -79,7 +84,7 @@ func (c *camera) ScreenToWorld(sx, sy float64) (wx, wy float64) {
 }
 
 func (c *camera) Move(dx, dy float64) {
-	if c.locked {
+	if c.locked || (dx == 0 && dy == 0) {
 		return
 	}
 

@@ -9,8 +9,6 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type Renderer struct {
@@ -18,14 +16,22 @@ type Renderer struct {
 	ps        preset.ParamSet
 	renderers []ChunkRenderer
 	current   int
-	world     *world.World
-	cam       camera.Camera
+
+	world   *world.World
+	worldSt uint8
+
+	cam   camera.Camera
+	camSt uint8
+
+	hm *ebiten.Image
 }
 
 func NewRenderer(w *world.World, c camera.Camera) *Renderer {
 	r := &Renderer{
-		world: w,
-		cam:   c,
+		world:   w,
+		cam:     c,
+		camSt:   c.RegisterChangeId(),
+		worldSt: w.RegisterChangeId(),
 		renderers: []ChunkRenderer{
 			NewColorScale(),
 			NewTerrain(),
@@ -42,13 +48,33 @@ func (r *Renderer) Update() {
 }
 
 func (r *Renderer) Draw(dst *ebiten.Image) {
+	if r.cam.HasChanged(r.camSt) || r.world.HasChanged(r.worldSt) {
+		r.drawHeightMap()
+	}
+
+	ww, wh := r.cam.GetViewport()
+	op := &ebiten.DrawRectShaderOptions{
+		Images:   [4]*ebiten.Image{r.hm},
+		Uniforms: map[string]any{},
+	}
+
+	r.renderers[r.current].Draw(dst, ww, wh, op)
+}
+func (r *Renderer) drawHeightMap() {
+	ww, wh := r.cam.GetViewport()
+	if r.hm == nil || r.hm.Bounds().Dx() != ww || r.hm.Bounds().Dy() != wh {
+		r.hm = ebiten.NewImage(ww, wh)
+	} else {
+		r.hm.Clear()
+	}
+
 	r.drawn = 0
 	z := r.cam.Zoom()
 	if z <= 0 {
 		return
 	}
 
-	csScreen := world.ChunkSize * z
+	//csScreen := world.ChunkSize * z
 	worldRect := r.cam.WorldRect()
 
 	for _, c := range r.world.Chunks() {
@@ -60,39 +86,42 @@ func (r *Renderer) Draw(dst *ebiten.Image) {
 			continue
 		}
 
-		sx, sy := r.cam.WorldToScreen(wx, wy)
-		hm := c.GetHeightMap()
-
 		if c.Is(world.ChunkStateReady) {
-			bds := hm.Bounds()
-			op := &ebiten.DrawRectShaderOptions{}
-			op.Images = [4]*ebiten.Image{hm}
-			originX := float32(sx - world.ChunkApron*z)
-			originY := float32(sy - world.ChunkApron*z)
+			/*
+				op := &ebiten.DrawRectShaderOptions{}
+				op.Images = [4]*ebiten.Image{hm}
+				originX := float32(sx - world.ChunkApron*z)
+				originY := float32(sy - world.ChunkApron*z)
 
-			op.Uniforms = map[string]any{
-				"Apron":     float32(world.ChunkApron),
-				"ChunkSize": float32(world.ChunkSize),
-				"Zoom":      float32(z),
-				"Origin":    []float32{originX, originY},
-			}
+				op.Uniforms = map[string]any{
+					"Apron":     float32(world.ChunkApron),
+					"ChunkSize": float32(world.ChunkSize),
+					"Zoom":      float32(z),
+					"Origin":    []float32{originX, originY},
+				}*/
+			sx, sy := r.cam.WorldToScreen(wx, wy)
+			hm := c.GetHeightMap()
+
+			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Scale(z, z)
-			op.GeoM.Translate(
-				sx-world.ChunkApron*z,
-				sy-world.ChunkApron*z,
-			)
-			r.renderers[r.current].DrawChunk(dst, bds.Dx(), bds.Dy(), op)
+			op.GeoM.Translate(sx, sy)
+
+			r.hm.DrawImage(hm, op)
+
+			/*
+				bds := hm.Bounds()
+				r.renderers[r.current].Draw(r.hm, bds.Dx(), bds.Dy(), op)
+			*/
 
 			r.drawn++
 			continue
 		}
-
-		fill := debugChunkColor(c.Id(), 0x80)
-		vector.StrokeRect(dst, float32(sx), float32(sy), float32(csScreen-1), float32(csScreen-1), 1, fill, false)
-		vector.StrokeLine(dst, float32(sx), float32(sy), float32(sx+csScreen), float32(sy+csScreen), 1, fill, false)
-		vector.StrokeLine(dst, float32(sx+csScreen), float32(sy), float32(sx), float32(sy+csScreen), 1, fill, false)
-		ebitenutil.DebugPrintAt(dst, c.Id().String(), int(sx+2), int(sy+2))
-
+		/*
+			fill := debugChunkColor(c.Id(), 0x80)
+			vector.StrokeRect(r.hm, float32(sx), float32(sy), float32(csScreen-1), float32(csScreen-1), 1, fill, false)
+			vector.StrokeLine(r.hm, float32(sx), float32(sy), float32(sx+csScreen), float32(sy+csScreen), 1, fill, false)
+			vector.StrokeLine(r.hm, float32(sx+csScreen), float32(sy), float32(sx), float32(sy+csScreen), 1, fill, false)
+		*/
 		r.drawn++
 	}
 }
@@ -102,7 +131,6 @@ func (r *Renderer) DrawnChunks() int {
 }
 
 func debugChunkColor(id world.ChunkId, alpha uint8) color.RGBA {
-	// Simple stable hash
 	x := uint64(id.X)
 	y := uint64(id.Y)
 	h := x*0x9e3779b97f4a7c15 ^ y*0xbf58476d1ce4e5b9

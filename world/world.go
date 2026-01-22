@@ -2,6 +2,7 @@ package world
 
 import (
 	"geoforge/camera"
+	"geoforge/game"
 	"geoforge/geo"
 	"geoforge/noise"
 	"runtime"
@@ -32,18 +33,21 @@ type World struct {
 
 	cam   camera.Camera
 	camSt uint8
+
+	game.StateChanged
 }
 
 func NewWorld(margin int, cam camera.Camera) *World {
 	ws := runtime.NumCPU()
 
 	w := &World{
-		margin:  float64(margin) * ChunkSize,
-		chunks:  make(map[ChunkId]*Chunk),
-		query:   make(chan query, ws*2),
-		results: make(chan result, ws*2),
-		cam:     cam,
-		camSt:   cam.RegisterChangeId(),
+		margin:       float64(margin) * ChunkSize,
+		chunks:       make(map[ChunkId]*Chunk),
+		query:        make(chan query, ws*2),
+		results:      make(chan result, ws*2),
+		cam:          cam,
+		camSt:        cam.RegisterChangeId(),
+		StateChanged: game.NewStateChanged(),
 		hmPool: sync.Pool{
 			New: func() any {
 				return make([]byte, 4*ChunkSurface)
@@ -85,6 +89,7 @@ func (w *World) MarkDirty() {
 		c.BumpGeneration()
 		c.SetState(ChunkStateDirty)
 	}
+	w.SetChanged()
 }
 
 func (w *World) generateHeightMaps() {
@@ -117,6 +122,7 @@ func (w *World) storeHeightMaps() {
 			if exists {
 				if c.WritePixels(res.gen, res.hm) {
 					c.SetState(ChunkStateReady)
+					w.SetChanged()
 				}
 			}
 			w.hmPool.Put(res.hm)
@@ -142,6 +148,7 @@ func (w *World) evict(rect geo.Rect) {
 		cRect := geo.NewRect(cx, cy, cx+ChunkSize, cy+ChunkSize)
 		if !rect.Intersects(cRect) {
 			delete(w.chunks, id)
+			w.SetChanged()
 		}
 	}
 }
@@ -151,14 +158,14 @@ func (w *World) worker() {
 	const offset = 127.5
 
 	for q := range w.query {
-		baseX := q.id.X*ChunkSize - ChunkApron
-		baseY := q.id.Y*ChunkSize - ChunkApron
+		baseX := q.id.X * ChunkSize
+		baseY := q.id.Y * ChunkSize
 
 		hmp := w.hmPool.Get().([]byte)
 
 		idx := 0
-		for y := 0; y < ChunkDimSize; y++ {
-			for x := 0; x < ChunkDimSize; x++ {
+		for y := 0; y < ChunkSize; y++ {
+			for x := 0; x < ChunkSize; x++ {
 				v := q.noise.At(float32(baseX+x), float32(baseY+y))
 				b := byte(v*normalizeFactor + offset) // 0..255
 				hmp[idx] = b                          // R channel only
