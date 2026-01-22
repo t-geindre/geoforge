@@ -74,10 +74,13 @@ func (r *Renderer) drawHeightMap() {
 		return
 	}
 
-	//csScreen := world.ChunkSize * z
 	worldRect := r.cam.WorldRect()
 
 	for _, c := range r.world.Chunks() {
+		if !c.Is(world.ChunkStateReady) {
+			continue
+		}
+
 		wx := float64(c.Id().X) * world.ChunkSize
 		wy := float64(c.Id().Y) * world.ChunkSize
 
@@ -86,42 +89,14 @@ func (r *Renderer) drawHeightMap() {
 			continue
 		}
 
-		if c.Is(world.ChunkStateReady) {
-			/*
-				op := &ebiten.DrawRectShaderOptions{}
-				op.Images = [4]*ebiten.Image{hm}
-				originX := float32(sx - world.ChunkApron*z)
-				originY := float32(sy - world.ChunkApron*z)
+		sx, sy := r.cam.WorldToScreen(wx, wy)
+		hm := c.GetHeightMap()
 
-				op.Uniforms = map[string]any{
-					"Apron":     float32(world.ChunkApron),
-					"ChunkSize": float32(world.ChunkSize),
-					"Zoom":      float32(z),
-					"Origin":    []float32{originX, originY},
-				}*/
-			sx, sy := r.cam.WorldToScreen(wx, wy)
-			hm := c.GetHeightMap()
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Scale(z, z)
+		op.GeoM.Translate(sx, sy)
 
-			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Scale(z, z)
-			op.GeoM.Translate(sx, sy)
-
-			r.hm.DrawImage(hm, op)
-
-			/*
-				bds := hm.Bounds()
-				r.renderers[r.current].Draw(r.hm, bds.Dx(), bds.Dy(), op)
-			*/
-
-			r.drawn++
-			continue
-		}
-		/*
-			fill := debugChunkColor(c.Id(), 0x80)
-			vector.StrokeRect(r.hm, float32(sx), float32(sy), float32(csScreen-1), float32(csScreen-1), 1, fill, false)
-			vector.StrokeLine(r.hm, float32(sx), float32(sy), float32(sx+csScreen), float32(sy+csScreen), 1, fill, false)
-			vector.StrokeLine(r.hm, float32(sx+csScreen), float32(sy), float32(sx), float32(sy+csScreen), 1, fill, false)
-		*/
+		r.hm.DrawImage(hm, op)
 		r.drawn++
 	}
 }

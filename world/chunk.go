@@ -40,13 +40,24 @@ func (c *Chunk) Id() ChunkId {
 	return c.id
 }
 
-// WritePixels writes the given pixels to the heightmap if the generation matches
-func (c *Chunk) WritePixels(gen uint64, pixels []byte) bool {
+// WritePixels writes the given grayscale pixels to the heightmap if the generation matches
+// Converts grayscale (1 byte per pixel) to RGBA (4 bytes per pixel) for ebiten.Image
+// rgbaBuf must be at least 4*ChunkSurface bytes and will be reused to avoid allocations
+func (c *Chunk) WritePixels(gen uint64, pixels []byte, rgbaBuf []byte) bool {
 	if c.gen != gen {
 		return false
 	}
 
-	c.hm.WritePixels(pixels)
+	// Convert grayscale to RGBA format
+	for i, gray := range pixels {
+		idx := i * 4
+		rgbaBuf[idx] = gray   // R
+		rgbaBuf[idx+1] = gray // G
+		rgbaBuf[idx+2] = gray // B
+		rgbaBuf[idx+3] = 255  // A
+	}
+
+	c.hm.WritePixels(rgbaBuf)
 
 	return true
 }
@@ -69,4 +80,8 @@ func (c *Chunk) GetGeneration() uint64 {
 
 func (c *Chunk) BumpGeneration() {
 	c.gen++
+}
+
+func (c *Chunk) ResetGeneration() {
+	c.gen = 0
 }

@@ -18,16 +18,17 @@ type query struct {
 type result struct {
 	id  ChunkId
 	gen uint64 // chunk generation, avoid stale
-	hm  []byte // heightmap, RGBA, R = height
+	hm  []byte // heightmap, grayscale, 1 byte per pixel
 }
 
 type World struct {
 	margin float64
 	chunks map[ChunkId]*Chunk
 
-	query   chan query
-	results chan result
-	hmPool  sync.Pool
+	query    chan query
+	results  chan result
+	hmPool   sync.Pool
+	rgbaPool sync.Pool
 
 	noise noise.Noise
 
@@ -49,6 +50,11 @@ func NewWorld(margin int, cam camera.Camera) *World {
 		camSt:        cam.RegisterChangeId(),
 		StateChanged: game.NewStateChanged(),
 		hmPool: sync.Pool{
+			New: func() any {
+				return make([]byte, ChunkSurface)
+			},
+		},
+		rgbaPool: sync.Pool{
 			New: func() any {
 				return make([]byte, 4*ChunkSurface)
 			},
@@ -120,10 +126,12 @@ func (w *World) storeHeightMaps() {
 		case res := <-w.results:
 			c, exists := w.chunks[res.id]
 			if exists {
-				if c.WritePixels(res.gen, res.hm) {
+				rgbaBuf := w.rgbaPool.Get().([]byte)
+				if c.WritePixels(res.gen, res.hm, rgbaBuf) {
 					c.SetState(ChunkStateReady)
 					w.SetChanged()
 				}
+				w.rgbaPool.Put(rgbaBuf)
 			}
 			w.hmPool.Put(res.hm)
 		default:
@@ -167,9 +175,8 @@ func (w *World) worker() {
 		for y := 0; y < ChunkSize; y++ {
 			for x := 0; x < ChunkSize; x++ {
 				v := q.noise.At(float32(baseX+x), float32(baseY+y))
-				b := byte(v*normalizeFactor + offset) // 0..255
-				hmp[idx] = b                          // R channel only
-				idx += 4
+				hmp[idx] = byte(v*normalizeFactor + offset) // 0..255, grayscale
+				idx++
 			}
 		}
 
