@@ -11,6 +11,8 @@ type Cam interface {
 	Position() (x, y float64)
 	SetZoom(zoom float64)
 	Zoom() float64
+	Lock(locked bool)
+	Locked() bool
 }
 
 type Camera struct {
@@ -26,12 +28,24 @@ func (c *Camera) UiUpdate(ctx *debugui.Context) {
 		ctx.SetGridLayout([]int{-1, 70}, nil)
 		ctx.Text(fmt.Sprintf("Zoom: %.0f%%", c.cam.Zoom()*100))
 		ctx.Button("Reset").On(func() {
-			c.cam.SetZoom(1)
+			if c.cam.Locked() {
+				c.cam.Lock(false)
+				c.cam.SetZoom(1)
+				c.cam.Lock(false)
+			} else {
+				c.cam.SetZoom(1)
+			}
 		})
 		x, y := c.cam.Position()
 		ctx.Text(fmt.Sprintf("Position: (%.0f, %.0f)", x, y))
 		ctx.Button("Center").On(func() {
-			c.cam.MoveTo(0, 0)
+			if c.cam.Locked() {
+				c.cam.Lock(false)
+				c.cam.MoveTo(0, 0)
+				c.cam.Lock(true)
+			} else {
+				c.cam.MoveTo(0, 0)
+			}
 		})
 	})
 }

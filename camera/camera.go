@@ -21,6 +21,7 @@ type Camera interface {
 	Reset()
 	//Lock the camera position and zoom
 	Lock(bool)
+	Locked() bool
 	game.StateChanged
 }
 
@@ -145,4 +146,8 @@ func (c *camera) Reset() {
 
 func (c *camera) Lock(lock bool) {
 	c.locked = lock
+}
+
+func (c *camera) Locked() bool {
+	return c.locked
 }
