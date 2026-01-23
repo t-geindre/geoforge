@@ -35,6 +35,7 @@ func NewNoiseManager(r Receiver) *Manager {
 			NewClamp(),
 			NewMaths(),
 			NewWarp(),
+			NewNormalize(),
 		))
 	}))
 
