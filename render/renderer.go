@@ -64,8 +64,6 @@ func (r *Renderer) drawHeightMap() {
 	ww, wh := r.cam.GetViewport()
 	if r.hm == nil || r.hm.Bounds().Dx() != ww || r.hm.Bounds().Dy() != wh {
 		r.hm = ebiten.NewImage(ww, wh)
-	} else {
-		r.hm.Clear()
 	}
 
 	r.drawn = 0
@@ -77,10 +75,6 @@ func (r *Renderer) drawHeightMap() {
 	worldRect := r.cam.WorldRect()
 
 	for _, c := range r.world.Chunks() {
-		if !c.Is(world.ChunkStateReady) {
-			continue
-		}
-
 		wx := float64(c.Id().X) * world.ChunkSize
 		wy := float64(c.Id().Y) * world.ChunkSize
 

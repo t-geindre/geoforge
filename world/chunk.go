@@ -1,6 +1,8 @@
 package world
 
 import (
+	"image/color"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -29,10 +31,13 @@ type Chunk struct {
 }
 
 func NewChunk(id ChunkId) *Chunk {
+	hm := ebiten.NewImage(ChunkSize, ChunkSize)
+	hm.Fill(color.Black)
+
 	return &Chunk{
 		id:    id,
 		state: ChunkStateDirty,
-		hm:    ebiten.NewImage(ChunkSize, ChunkSize),
+		hm:    hm,
 	}
 }
 
