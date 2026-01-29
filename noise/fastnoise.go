@@ -7,16 +7,15 @@ import (
 )
 
 type fastNoise struct {
-	fsn    *fastnoise.State[float32]
-	fsw    *fastnoise.State[float32]
-	doWarp bool
-	ps     preset.ParamSet
+	fsn  *fastnoise.State[float32]
+	warp *warp
+	ps   preset.ParamSet
 }
 
 func NewFastNoise() Noise {
 	n := &fastNoise{
-		fsn: fastnoise.New[float32](),
-		fsw: fastnoise.New[float32](),
+		fsn:  fastnoise.New[float32](),
+		warp: newWarp(),
 	}
 
 	n.buildParams()
@@ -25,11 +24,8 @@ func NewFastNoise() Noise {
 }
 
 func (n *fastNoise) At(x, y float32) float32 {
-	px, py := x, y
-	if n.doWarp {
-		px, py = n.fsw.DomainWarp2D(px, py)
-	}
-	return n.fsn.GetNoise2D(px, py)
+	x, y = n.warp.Warp(x, y)
+	return n.fsn.GetNoise2D(x, y)
 }
 
 func (n *fastNoise) Params() preset.ParamSet {
@@ -126,33 +122,7 @@ func (n *fastNoise) buildParams() {
 	n.ps.Append(fract)
 
 	// Domain warp parameters
-	warp := preset.NewParamSet(ParamSetWarp, "Domain Warp")
-	warp.Append(preset.NewChoice(ParamWarpType, "Type", -1, []preset.Option[fastnoise.DomainWarpType]{
-		preset.NewOption(DomainWarpNone, "None"),
-		preset.NewOption(fastnoise.DomainWarpOpenSimplex2, "OpenSimplex2"),
-		preset.NewOption(fastnoise.DomainWarpOpenSimplex2Reduced, "OpenSimplex2Reduced"),
-		preset.NewOption(fastnoise.DomainWarpBasicGrid, "BasicGrid"),
-	}, func(p preset.Param[fastnoise.DomainWarpType]) {
-		v := p.Val()
-
-		if v == DomainWarpNone {
-			n.doWarp = false
-			return
-		}
-
-		n.doWarp = true
-		n.fsw.DomainWarpType = v
-	}))
-
-	warp.Append(preset.NewVariable(ParamWarpAmp, "Amplitude", 0.0, 0.0, 100.0, 1.0, 2, func(p preset.Param[float32]) {
-		n.fsw.DomainWarpAmp = p.Val()
-	}))
-
-	warp.Append(preset.NewVariable(ParamWarpFreq, "Frequency", 0.0001, 0.0001, 0.1, 0.0001, 4, func(p preset.Param[float32]) {
-		n.fsw.Frequency = p.Val()
-	}))
-
-	n.ps.Append(warp)
+	n.ps.Append(n.warp.Params())
 }
 
 func (n *fastNoise) Name() string {
