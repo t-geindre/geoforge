@@ -1,7 +1,6 @@
 package ui2
 
 import (
-	image2 "image"
 	"image/color"
 
 	"github.com/ebitenui/ebitenui/image"
@@ -9,14 +8,18 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const WorldMargin = 200 // pixels
+
 type Desktop struct {
 	*widget.ScrollContainer
 	content *widget.Container
 
 	ww, wh int
 
+	dragging     *Draggable
+	pendingFront *Draggable
+
 	draggables    []*Draggable // last = top
-	dragging      *Draggable
 	clearHandlers map[*Draggable]func()
 	grabX, grabY  int
 
@@ -35,6 +38,7 @@ func NewDesktop(ww, wh int) *Desktop {
 	}
 
 	d.content = widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.MinSize(ww, wh),
 		),
@@ -70,7 +74,7 @@ func (d *Desktop) AddDraggable(drag *Draggable) {
 		}
 
 		if d.dragging == nil && !d.panning {
-			d.BringToFront(drag)
+			d.pendingFront = drag
 		}
 	})
 
@@ -98,7 +102,38 @@ func (d *Desktop) RemoveDraggable(drag *Draggable) {
 	}
 }
 
-func (d *Desktop) BringToFront(drag *Draggable) {
+func (d *Desktop) BringToFront() {
+	if d.pendingFront == nil {
+		// none
+		return
+	}
+	drag := d.pendingFront
+	d.pendingFront = nil
+
+	if len(d.draggables) < 2 || drag == d.draggables[len(d.draggables)-1] {
+		// already front
+		return
+	}
+
+	intersect := false
+	rect := drag.GetWidget().Rect
+	for _, dr := range d.draggables {
+		if dr == drag {
+			continue
+		}
+		r := dr.GetWidget().Rect
+		if rect.Min.X < r.Max.X && rect.Max.X > r.Min.X &&
+			rect.Min.Y < r.Max.Y && rect.Max.Y > r.Min.Y {
+			intersect = true
+			break
+		}
+	}
+
+	if !intersect {
+		// no intersection, no need to reorder
+		return
+	}
+
 	for i, dr := range d.draggables {
 		if dr == drag {
 			d.draggables = append(d.draggables[:i], d.draggables[i+1:]...)
@@ -124,7 +159,9 @@ func (d *Desktop) DragEnds(args *widget.WidgetMouseButtonReleasedEventArgs, drag
 	if args.Button != ebiten.MouseButtonLeft || d.dragging != drag {
 		return
 	}
+	d.pendingFront = drag
 	d.dragging = nil
+	d.RefitWorld()
 }
 
 func (d *Desktop) PanStarts(args *widget.WidgetMouseButtonPressedEventArgs) {
@@ -151,6 +188,8 @@ func (d *Desktop) contentOrigin() (ox, oy int) {
 }
 
 func (d *Desktop) UpdateDragging() {
+	d.BringToFront()
+
 	if d.panning {
 		mx, my := ebiten.CursorPosition()
 		dx := float64(mx - d.panStartMX)
@@ -205,28 +244,24 @@ func (d *Desktop) UpdateDragging() {
 		wx := (mx - ox) - d.grabX
 		wy := (my - oy) - d.grabY
 
-		w, h := d.dragging.PreferredSize()
-		maxX := d.ww - w
-		maxY := d.wh - h
 		if wx < 0 {
 			wx = 0
-		} else if wx > maxX {
-			wx = maxX
 		}
 		if wy < 0 {
 			wy = 0
-		} else if wy > maxY {
-			wy = maxY
 		}
 
 		d.dragging.wx, d.dragging.wy = wx, wy
-	}
 
-	for _, dr := range d.draggables {
-		w, h := dr.PreferredSize()
-		sx := ox + dr.wx
-		sy := oy + dr.wy
-		dr.SetLocation(image2.Rect(sx, sy, sx+w, sy+h))
+		ld := d.dragging.GetWidget().LayoutData.(widget.AnchorLayoutData)
+		if ld.Padding == nil {
+			ld.Padding = &widget.Insets{}
+		}
+		ld.Padding.Left = wx
+		ld.Padding.Top = wy
+		d.dragging.GetWidget().LayoutData = ld
+
+		d.content.RequestRelayout()
 	}
 }
 
@@ -241,4 +276,42 @@ func (d *Desktop) TopMostAtCursor() *Draggable {
 		}
 	}
 	return nil
+}
+
+func (d *Desktop) RefitWorld() {
+	vr := d.GetWidget().Rect
+	vw, vh := vr.Dx(), vr.Dy()
+
+	needW, needH := vw, vh
+
+	for _, dr := range d.draggables {
+		w, h := dr.GetWidget().Rect.Dx(), dr.GetWidget().Rect.Dy()
+		if w == 0 || h == 0 {
+			pw, ph := dr.PreferredSize()
+			w, h = pw, ph
+		}
+
+		x := dr.wx
+		y := dr.wy
+		r := x + w
+		b := y + h
+
+		if r > needW {
+			needW = r
+		}
+		if b > needH {
+			needH = b
+		}
+	}
+
+	needW += WorldMargin
+	needH += WorldMargin
+
+	d.content.GetWidget().MinWidth = needW
+	d.content.GetWidget().MinHeight = needH
+
+	d.ww = needW
+	d.wh = needH
+
+	d.content.RequestRelayout()
 }
