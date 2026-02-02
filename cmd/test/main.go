@@ -1,80 +1,83 @@
 package main
 
 import (
-	"fmt"
+	"geoforge/cmd/test/ui2"
 	"geoforge/game"
 
 	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/themes"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/colornames"
 )
 
 func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	theme := NewDefaultTheme()
-	builder := NewBuilder(theme)
 
-	root := builder.NewMainContainer()
+	theme := themes.GetBasicDarkTheme()
 
-	menuBar := builder.NewMenuBar()
-	menuBar.AddChild(builder.NewButton("File"))
-	menuBar.AddChild(builder.NewButton("View"))
+	menu := ui2.NewMenu(theme)
+	desktop := ui2.NewDesktop(1000, 1000)
+	status := ui2.NewStatus(theme)
 
-	statusBar := builder.NewStatusBar()
-	statusBar.AddChild(builder.NewText("Ready."))
+	layout := ui2.NewLayout()
+	layout.AddChild(menu, desktop, status)
 
-	fps := builder.NewText("FPS 60")
-	statusBar.AddChild(fps)
-	fpdUpdater := game.NewUpdateFunc(func() {
-		fps.Label = fmt.Sprintf("FPS %0.f", ebiten.ActualFPS())
-	})
-
-	root.AddChild(menuBar)
-
-	desktop := NewDesktop(20000, 20000)
-
-	dragA := NewDraggable(100, 100, colornames.Red)
-	dragB := NewDraggable(10, 20, colornames.Green)
-	dragC := NewDraggable(20, 30, colornames.Blue)
-
-	desktop.AddDraggable(dragA)
-	desktop.AddDraggable(dragB)
-	desktop.AddDraggable(dragC)
-
-	updater := game.NewUpdateFunc(desktop.UpdateDragging)
-
-	dragABody := widget.NewContainer(
+	drag := ui2.NewDraggable(50, 50, theme)
+	dbody := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
-				widget.GridLayoutOpts.Columns(1),
-				widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false}),
-				widget.GridLayoutOpts.Padding(&widget.Insets{Top: 5, Bottom: 5, Left: 5, Right: 5}),
-				widget.GridLayoutOpts.Spacing(5, 5),
+				widget.GridLayoutOpts.Columns(2),
+				widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false}),
+				widget.GridLayoutOpts.Padding(&widget.Insets{Top: 10, Bottom: 10, Left: 10, Right: 10}),
+				widget.GridLayoutOpts.Spacing(15, 15),
 			),
 		),
 	)
-	dragABody.AddChild(builder.NewButton("Hello"))
-	dragABody.AddChild(builder.NewButton("Hello"))
-	dragABody.AddChild(builder.NewButton("Hello"))
-	dragABody.AddChild(builder.NewButton("Hello"))
-	dragABody.AddChild(builder.NewButton("Hello"))
-	dragA.AddChild(dragABody)
+	drag.AddChild(dbody)
+	dbody.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("Button")),
+		widget.NewButton(widget.ButtonOpts.TextLabel("Button")),
+	)
+	dbody.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("Checkbox")),
+		widget.NewCheckbox(),
+	)
+	dbody.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("Slider")),
+		widget.NewSlider(
+			widget.SliderOpts.MinMax(0, 100),
+			widget.SliderOpts.InitialCurrent(50),
+		),
+	)
+	dbody.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("Text Input")),
+		widget.NewTextInput(),
+	)
 
-	dragB.AddChild(builder.NewButton("World"))
-	dragB.AddChild(builder.NewButton("World"))
-	dragB.AddChild(builder.NewButton("World"))
-	dragB.AddChild(builder.NewButton("World"))
-	dragB.AddChild(builder.NewButton("World"))
-	dragB.AddChild(builder.NewButton("World"))
-	dragC.AddChild(builder.NewText("!"))
+	var items []any
+	for i := 1; i <= 15; i++ {
+		items = append(items, "Entry "+string(rune('A'+i-1)))
+	}
+	dbody.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("List")),
+		widget.NewListComboButton(
+			widget.ListComboButtonOpts.Entries(items),
+			widget.ListComboButtonOpts.EntryLabelFunc(func(v any) string {
+				return v.(string)
+			}, func(v any) string {
+				return v.(string)
+			}),
+		),
+	)
 
-	root.AddChild(desktop)
-	root.AddChild(statusBar)
+	desktop.AddDraggable(drag)
 
-	ui := &ebitenui.UI{Container: root}
+	ui := &ebitenui.UI{Container: layout.Container}
+	ui.PrimaryTheme = theme
 
-	if err := ebiten.RunGame(game.NewGame(ui, fpdUpdater, updater)); err != nil {
+	updater := game.NewUpdateFunc(desktop.UpdateDragging)
+
+	if err := ebiten.RunGame(game.NewGame(ui, updater)); err != nil {
 		panic(err)
 	}
 }

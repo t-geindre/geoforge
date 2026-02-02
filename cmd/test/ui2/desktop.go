@@ -1,4 +1,4 @@
-package main
+package ui2
 
 import (
 	image2 "image"
@@ -205,7 +205,7 @@ func (d *Desktop) UpdateDragging() {
 		wx := (mx - ox) - d.grabX
 		wy := (my - oy) - d.grabY
 
-		w, h := d.dragging.Size()
+		w, h := d.dragging.PreferredSize()
 		maxX := d.ww - w
 		maxY := d.wh - h
 		if wx < 0 {
@@ -223,7 +223,7 @@ func (d *Desktop) UpdateDragging() {
 	}
 
 	for _, dr := range d.draggables {
-		w, h := dr.Size()
+		w, h := dr.PreferredSize()
 		sx := ox + dr.wx
 		sy := oy + dr.wy
 		dr.SetLocation(image2.Rect(sx, sy, sx+w, sy+h))
