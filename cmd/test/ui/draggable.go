@@ -1,4 +1,4 @@
-package ui2
+package ui
 
 import (
 	"github.com/ebitenui/ebitenui/widget"
@@ -14,12 +14,12 @@ type Draggable struct {
 	w, h    int
 }
 
-func NewDraggable(wx, wy int, theme *widget.Theme) *Draggable {
+func NewDraggable(wx, wy int, theme *Theme) *Draggable {
 	container := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			Padding: &widget.Insets{Left: wx, Top: wy},
 		})),
-		widget.ContainerOpts.BackgroundImage(theme.TabTheme.BackgroundImage),
+		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
 				widget.GridLayoutOpts.Columns(1),
@@ -27,9 +27,11 @@ func NewDraggable(wx, wy int, theme *widget.Theme) *Draggable {
 		),
 	)
 	header := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(theme.TabTheme.BackgroundImage),
+		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.Layout(
-			widget.NewAnchorLayout(),
+			widget.NewAnchorLayout(
+				widget.AnchorLayoutOpts.Padding(theme.PanelTheme.Padding),
+			),
 		),
 	)
 	title := widget.NewText(

@@ -1,11 +1,10 @@
 package main
 
 import (
-	"geoforge/cmd/test/ui2"
+	"geoforge/cmd/test/ui"
 	"geoforge/game"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/themes"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -13,24 +12,24 @@ import (
 func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	theme := themes.GetBasicDarkTheme()
+	theme := ui.NewTheme()
 
-	menu := ui2.NewMenu(theme)
-	desktop := ui2.NewDesktop(1000, 1000)
-	status := ui2.NewStatus(theme)
+	menu := ui.NewMenu(theme)
+	desktop := ui.NewDesktop(1000, 1000)
+	status := ui.NewStatus(theme)
 
-	layout := ui2.NewLayout()
+	layout := ui.NewLayout(theme)
 	layout.AddChild(menu, desktop, status)
 
 	for j := 0; j < 3; j++ {
-		drag := ui2.NewDraggable(j*50, 50, theme)
+		drag := ui.NewDraggable(j*150, 50, theme)
 		dbody := widget.NewContainer(
 			widget.ContainerOpts.Layout(
 				widget.NewGridLayout(
 					widget.GridLayoutOpts.Columns(2),
 					widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false}),
-					widget.GridLayoutOpts.Padding(&widget.Insets{Top: 10, Bottom: 10, Left: 10, Right: 10}),
-					widget.GridLayoutOpts.Spacing(15, 15),
+					widget.GridLayoutOpts.Padding(theme.PanelTheme.Padding),
+					widget.GridLayoutOpts.Spacing(theme.PanelTheme.Spacing, theme.PanelTheme.Spacing),
 				),
 			),
 		)
@@ -71,7 +70,9 @@ func main() {
 			),
 		)
 		dbody.AddChild(
-			widget.NewText(widget.TextOpts.TextLabel("Text Input")),
+			widget.NewText(
+				widget.TextOpts.TextLabel("Text Input"),
+			),
 			widget.NewTextInput(),
 		)
 
@@ -79,7 +80,7 @@ func main() {
 	}
 
 	ui := &ebitenui.UI{Container: layout.Container}
-	ui.PrimaryTheme = theme
+	ui.PrimaryTheme = theme.Theme
 
 	updater := game.NewUpdateFunc(desktop.UpdateDragging)
 

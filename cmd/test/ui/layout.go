@@ -1,4 +1,4 @@
-package ui2
+package ui
 
 import "github.com/ebitenui/ebitenui/widget"
 
@@ -6,9 +6,10 @@ type Layout struct {
 	*widget.Container
 }
 
-func NewLayout() *Layout {
+func NewLayout(theme *Theme) *Layout {
 	return &Layout{
 		Container: widget.NewContainer(
+			widget.ContainerOpts.BackgroundImage(theme.PanelTheme.BackgroundImage),
 			widget.ContainerOpts.Layout(
 				widget.NewGridLayout(
 					widget.GridLayoutOpts.Columns(1),

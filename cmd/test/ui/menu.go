@@ -1,12 +1,14 @@
-package ui2
+package ui
 
 import "github.com/ebitenui/ebitenui/widget"
 
-func NewMenu(theme *widget.Theme) *widget.Container {
+func NewMenu(theme *Theme) *widget.Container {
 	c := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(theme.TabTheme.BackgroundImage),
+		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.Layout(
 			widget.NewRowLayout(
+				widget.RowLayoutOpts.Padding(theme.PanelTheme.Padding),
+				widget.RowLayoutOpts.Spacing(theme.PanelTheme.Spacing),
 				widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
 			),
 		),
