@@ -22,7 +22,7 @@ func main() {
 	layout.AddChild(menu, desktop, status)
 
 	for j := 0; j < 3; j++ {
-		drag := ui.NewDraggable(j*150, 50, theme)
+		drag := ui.NewDraggable(j*200, 50, theme)
 		dbody := widget.NewContainer(
 			widget.ContainerOpts.Layout(
 				widget.NewGridLayout(
@@ -36,23 +36,25 @@ func main() {
 		drag.AddChild(dbody)
 		drag.SetTitle("Draggable " + string(rune('A'+j)))
 
-		items := []any{
-			"Fast noise liter",
-			"Maths",
-			"Sine",
-			"Pow",
+		if j%2 == 0 {
+			items := []any{
+				"Fast noise",
+				"Maths",
+				"Sine",
+				"Pow",
+			}
+			dbody.AddChild(
+				widget.NewText(widget.TextOpts.TextLabel("List")),
+				widget.NewListComboButton(
+					widget.ListComboButtonOpts.Entries(items),
+					widget.ListComboButtonOpts.EntryLabelFunc(func(v any) string {
+						return v.(string)
+					}, func(v any) string {
+						return v.(string)
+					}),
+				),
+			)
 		}
-		dbody.AddChild(
-			widget.NewText(widget.TextOpts.TextLabel("List")),
-			widget.NewListComboButton(
-				widget.ListComboButtonOpts.Entries(items),
-				widget.ListComboButtonOpts.EntryLabelFunc(func(v any) string {
-					return v.(string)
-				}, func(v any) string {
-					return v.(string)
-				}),
-			),
-		)
 
 		dbody.AddChild(
 			widget.NewText(widget.TextOpts.TextLabel("Button")),
