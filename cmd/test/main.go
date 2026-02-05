@@ -5,88 +5,107 @@ import (
 	"geoforge/game"
 
 	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"golang.org/x/image/colornames"
 )
 
 func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
+	// THEME AND LAYOUT
 	theme := ui.NewTheme()
-
-	menu := ui.NewMenu(theme)
-	desktop := ui.NewDesktop(1000, 1000)
-	status := ui.NewStatus(theme)
-
 	layout := ui.NewLayout(theme)
-	layout.AddChild(menu, desktop, status)
+
+	// MAIN MENU
+	menu := ui.NewMenu(theme)
+	layout.AddChild(menu)
+
+	// SPLIT PAN
+	split := ui.NewSplit(theme)
+	layout.AddChild(split)
+
+	// DESKTOP (LEFT)
+	desktop := ui.NewDesktop(1000, 1000)
+	split.AddChild(desktop)
 
 	for j := 0; j < 3; j++ {
 		drag := ui.NewDraggable(j*200, 50, theme)
-		dbody := widget.NewContainer(
-			widget.ContainerOpts.Layout(
-				widget.NewGridLayout(
-					widget.GridLayoutOpts.Columns(2),
-					widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false}),
-					widget.GridLayoutOpts.Padding(theme.PanelTheme.Padding),
-					widget.GridLayoutOpts.Spacing(theme.PanelTheme.Spacing, theme.PanelTheme.Spacing),
-				),
-			),
-		)
-		drag.AddChild(dbody)
+		drag.AddChild(getGridForm(theme))
 		drag.SetTitle("Draggable " + string(rune('A'+j)))
-
-		if j%2 == 0 {
-			items := []any{
-				"Fast noise",
-				"Maths",
-				"Sine",
-				"Pow",
-			}
-			dbody.AddChild(
-				widget.NewText(widget.TextOpts.TextLabel("List")),
-				widget.NewListComboButton(
-					widget.ListComboButtonOpts.Entries(items),
-					widget.ListComboButtonOpts.EntryLabelFunc(func(v any) string {
-						return v.(string)
-					}, func(v any) string {
-						return v.(string)
-					}),
-				),
-			)
-		}
-
-		dbody.AddChild(
-			widget.NewText(widget.TextOpts.TextLabel("Button")),
-			widget.NewButton(widget.ButtonOpts.TextLabel("Button")),
-		)
-		dbody.AddChild(
-			widget.NewText(widget.TextOpts.TextLabel("Checkbox")),
-			widget.NewCheckbox(),
-		)
-		dbody.AddChild(
-			widget.NewText(widget.TextOpts.TextLabel("Slider")),
-			widget.NewSlider(
-				widget.SliderOpts.MinMax(0, 100),
-				widget.SliderOpts.InitialCurrent(50),
-			),
-		)
-		dbody.AddChild(
-			widget.NewText(
-				widget.TextOpts.TextLabel("Text Input"),
-			),
-			widget.NewTextInput(),
-		)
-
 		desktop.AddDraggable(drag)
 	}
 
+	// INSPECTOR (RIGHT)
+	split.AddChild(widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(colornames.White)),
+	))
+
+	// STATUS
+	status := ui.NewStatus(theme)
+	layout.AddChild(status)
+
+	// UI
 	ui := &ebitenui.UI{Container: layout.Container}
 	ui.PrimaryTheme = theme.Theme
 
-	updater := game.NewUpdateFunc(desktop.UpdateDragging)
-
-	if err := ebiten.RunGame(game.NewGame(updater, ui)); err != nil {
+	if err := ebiten.RunGame(game.NewGame(ui)); err != nil {
 		panic(err)
 	}
+}
+
+func getGridForm(theme *ui.Theme) *widget.Container {
+	grid := widget.NewContainer(
+		widget.ContainerOpts.Layout(
+			widget.NewGridLayout(
+				widget.GridLayoutOpts.Columns(2),
+				widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false}),
+				widget.GridLayoutOpts.Padding(theme.PanelTheme.Padding),
+				widget.GridLayoutOpts.Spacing(theme.PanelTheme.Spacing, theme.PanelTheme.Spacing),
+			),
+		),
+	)
+
+	items := []any{
+		"Fast noise",
+		"Maths",
+		"Sine",
+		"Pow",
+	}
+	grid.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("List")),
+		widget.NewListComboButton(
+			widget.ListComboButtonOpts.Entries(items),
+			widget.ListComboButtonOpts.EntryLabelFunc(func(v any) string {
+				return v.(string)
+			}, func(v any) string {
+				return v.(string)
+			}),
+		),
+	)
+
+	grid.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("Button")),
+		widget.NewButton(widget.ButtonOpts.TextLabel("Button")),
+	)
+	grid.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("Checkbox")),
+		widget.NewCheckbox(),
+	)
+	grid.AddChild(
+		widget.NewText(widget.TextOpts.TextLabel("Slider")),
+		widget.NewSlider(
+			widget.SliderOpts.MinMax(0, 100),
+			widget.SliderOpts.InitialCurrent(50),
+		),
+	)
+	grid.AddChild(
+		widget.NewText(
+			widget.TextOpts.TextLabel("Text Input"),
+		),
+		widget.NewTextInput(),
+	)
+
+	return grid
 }

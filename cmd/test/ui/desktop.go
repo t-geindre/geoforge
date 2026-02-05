@@ -53,6 +53,11 @@ func NewDesktop(ww, wh int) *Desktop {
 			Idle: image.NewNineSliceColor(color.NRGBA{0, 0, 0, 0}),
 			Mask: image.NewNineSliceColor(color.NRGBA{255, 255, 255, 255}),
 		}),
+		widget.ScrollContainerOpts.WidgetOpts(
+			widget.WidgetOpts.OnUpdate(func(w widget.HasWidget) {
+				d.UpdateDragging()
+			}),
+		),
 	)
 	return d
 }
