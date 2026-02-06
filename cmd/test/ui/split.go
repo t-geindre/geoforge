@@ -64,10 +64,11 @@ func (b *SplitBar) DragEnd(args *widget.WidgetMouseButtonReleasedEventArgs) {
 }
 
 type SplitLayout struct {
-	SplitX   int
-	BarWidth int
-	MinLeft  int
-	MinRight int
+	SplitX      int
+	BarWidth    int
+	MinLeft     int
+	MinRight    int
+	lastBoundsW int
 }
 
 func NewSplitLayout() *SplitLayout {
@@ -99,6 +100,15 @@ func (l *SplitLayout) PreferredSize(widgets []widget.PreferredSizeLocateableWidg
 }
 
 func (l *SplitLayout) Layout(children []widget.PreferredSizeLocateableWidget, bounds img.Rectangle) {
+	if l.lastBoundsW == 0 {
+		// First, no scaling
+		l.lastBoundsW = bounds.Dx()
+	} else if bounds.Dx() != l.lastBoundsW {
+		// Scale the split position based on the change in width
+		scale := float64(bounds.Dx()) / float64(l.lastBoundsW)
+		l.SplitX = int(float64(l.SplitX) * scale)
+		l.lastBoundsW = bounds.Dx()
+	}
 	w := bounds.Dx()
 	h := bounds.Dy()
 

@@ -1,6 +1,7 @@
 package render
 
 import (
+	"geoforge/camera"
 	"geoforge/preset"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -8,7 +9,7 @@ import (
 
 type ChunkRenderer interface {
 	Draw(dst *ebiten.Image, w, h int, op *ebiten.DrawRectShaderOptions)
-	Update()
+	Update(cam camera.Camera)
 	Params() preset.ParamSet
 	Name() string
 }
@@ -18,7 +19,7 @@ type chunkRenderer struct {
 	ps       preset.ParamSet
 	uniforms map[string]interface{}
 	name     string
-	update   func()
+	update   func(cam camera.Camera)
 }
 
 func newChunkRenderer(name string, shader []byte) *chunkRenderer {
@@ -32,7 +33,7 @@ func newChunkRenderer(name string, shader []byte) *chunkRenderer {
 		ps:       preset.NewAnonymousParamSet(),
 		uniforms: make(map[string]interface{}),
 		name:     name,
-		update:   func() {},
+		update:   func(cam camera.Camera) {},
 	}
 }
 
@@ -51,6 +52,6 @@ func (g *chunkRenderer) Name() string {
 	return g.name
 }
 
-func (g *chunkRenderer) Update() {
-	g.update()
+func (g *chunkRenderer) Update(cam camera.Camera) {
+	g.update(cam)
 }

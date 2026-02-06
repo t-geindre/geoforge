@@ -2,6 +2,7 @@ package render
 
 import (
 	_ "embed"
+	"geoforge/camera"
 	"geoforge/preset"
 	"image/color"
 
@@ -20,7 +21,7 @@ func NewTerrain() ChunkRenderer {
 	fmx, fmy := float32(mx), float32(my)
 	sx, sy := fmx/2, fmy/2
 
-	r.update = func() {
+	r.update = func(cam camera.Camera) {
 		if !msTrack {
 			r.uniforms["LightPos"] = [2]float32{sx, sy}
 			return

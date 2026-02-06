@@ -1,22 +1,30 @@
 package main
 
 import (
+	"geoforge/camera"
 	"geoforge/cmd/test/ui"
 	"geoforge/game"
+	"geoforge/noise"
+	"geoforge/render"
+	"geoforge/world"
+	"math"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/colornames"
 )
 
 func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
+	//debug()
+	//return
+
 	// THEME AND LAYOUT
 	theme := ui.NewTheme()
 	layout := ui.NewLayout(theme)
+
+	// NOISE SETUP
+	cam, wrld, rdr := noiseSetup()
 
 	// MAIN MENU
 	menu := ui.NewMenu(theme)
@@ -37,75 +45,61 @@ func main() {
 		desktop.AddDraggable(drag)
 	}
 
-	// INSPECTOR (RIGHT)
-	split.AddChild(widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(colornames.White)),
-	))
+	// NOISE PREVIEW (RIGHT)
+	previewWidget, previewDraw := ui.NewPreview(cam, rdr)
+	split.AddChild(previewWidget)
 
 	// STATUS
-	status := ui.NewStatus(theme)
+	status := ui.NewStatus(theme, rdr, wrld, cam)
 	layout.AddChild(status)
 
 	// UI
 	ui := &ebitenui.UI{Container: layout.Container}
 	ui.PrimaryTheme = theme.Theme
 
-	if err := ebiten.RunGame(game.NewGame(ui)); err != nil {
+	// UPDATES
+	updates := game.NewUpdateFunc(func() {
+		cam.Update()
+		wrld.Update()
+		rdr.Update()
+		ui.Update()
+	})
+
+	// DRAWS
+	draws := game.NewDrawFunc(func(screen *ebiten.Image) {
+		ui.Draw(screen)
+		previewDraw(screen)
+	})
+
+	if err := ebiten.RunGame(game.NewGame(updates, draws)); err != nil {
 		panic(err)
 	}
 }
 
-func getGridForm(theme *ui.Theme) *widget.Container {
-	grid := widget.NewContainer(
-		widget.ContainerOpts.Layout(
-			widget.NewGridLayout(
-				widget.GridLayoutOpts.Columns(2),
-				widget.GridLayoutOpts.Stretch([]bool{false, true}, []bool{false}),
-				widget.GridLayoutOpts.Padding(theme.PanelTheme.Padding),
-				widget.GridLayoutOpts.Spacing(theme.PanelTheme.Spacing, theme.PanelTheme.Spacing),
-			),
-		),
-	)
+func debug() {
+	cam := camera.NewWheelZoom(camera.NewMousePan(camera.NewCamera()))
+	cam.SetViewport(200, 200)
+	cam.ScreenMoveTo(200, 200)
 
-	items := []any{
-		"Fast noise",
-		"Maths",
-		"Sine",
-		"Pow",
-	}
-	grid.AddChild(
-		widget.NewText(widget.TextOpts.TextLabel("List")),
-		widget.NewListComboButton(
-			widget.ListComboButtonOpts.Entries(items),
-			widget.ListComboButtonOpts.EntryLabelFunc(func(v any) string {
-				return v.(string)
-			}, func(v any) string {
-				return v.(string)
-			}),
-		),
-	)
+	wrld := world.NewWorld(1, cam)
 
-	grid.AddChild(
-		widget.NewText(widget.TextOpts.TextLabel("Button")),
-		widget.NewButton(widget.ButtonOpts.TextLabel("Button")),
-	)
-	grid.AddChild(
-		widget.NewText(widget.TextOpts.TextLabel("Checkbox")),
-		widget.NewCheckbox(),
-	)
-	grid.AddChild(
-		widget.NewText(widget.TextOpts.TextLabel("Slider")),
-		widget.NewSlider(
-			widget.SliderOpts.MinMax(0, 100),
-			widget.SliderOpts.InitialCurrent(50),
-		),
-	)
-	grid.AddChild(
-		widget.NewText(
-			widget.TextOpts.TextLabel("Text Input"),
-		),
-		widget.NewTextInput(),
-	)
+	nse := noise.NewFastNoise()
+	wrld.SetNoise(nse)
 
-	return grid
+	rdr := render.NewRenderer(wrld, cam)
+	draw := game.NewDrawFunc(func(screen *ebiten.Image) {
+		rdr.Draw(screen)
+	})
+	rdrUpdate := game.NewUpdateFunc(func() {
+		rdr.Update()
+	})
+
+	var time float64
+	move := game.NewUpdateFunc(func() {
+		time += 0.01
+		cam.ScreenMoveTo(int(math.Sin(time)*100+200), int(math.Cos(time)*100+100))
+	})
+
+	ebiten.RunGame(game.NewGame(cam, wrld, draw, rdrUpdate, move))
+
 }

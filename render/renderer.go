@@ -33,8 +33,8 @@ func NewRenderer(w *world.World, c camera.Camera) *Renderer {
 		camSt:   c.RegisterChangeId(),
 		worldSt: w.RegisterChangeId(),
 		renderers: []ChunkRenderer{
-			NewColorScale(),
 			NewTerrain(),
+			NewColorScale(),
 		},
 	}
 
@@ -44,7 +44,7 @@ func NewRenderer(w *world.World, c camera.Camera) *Renderer {
 }
 
 func (r *Renderer) Update() {
-	r.renderers[r.current].Update()
+	r.renderers[r.current].Update(r.cam)
 }
 
 func (r *Renderer) Draw(dst *ebiten.Image) {
@@ -57,6 +57,9 @@ func (r *Renderer) Draw(dst *ebiten.Image) {
 		Images:   [4]*ebiten.Image{r.hm},
 		Uniforms: map[string]any{},
 	}
+
+	csx, csy := r.cam.ScreenPosition()
+	op.GeoM.Translate(float64(csx), float64(csy))
 
 	r.renderers[r.current].Draw(dst, ww, wh, op)
 }

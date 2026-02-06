@@ -1,8 +1,16 @@
 package ui
 
-import "github.com/ebitenui/ebitenui/widget"
+import (
+	"fmt"
+	"geoforge/camera"
+	"geoforge/render"
+	"geoforge/world"
 
-func NewStatus(theme *Theme) *widget.Container {
+	"github.com/ebitenui/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten/v2"
+)
+
+func NewStatus(theme *Theme, rdr *render.Renderer, wrld *world.World, cam camera.Camera) *widget.Container {
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.WidgetOpts(),
@@ -15,13 +23,30 @@ func NewStatus(theme *Theme) *widget.Container {
 		),
 	)
 
+	var fps *widget.Text
+	fps = widget.NewText(
+		widget.TextOpts.TextLabel("FPS: 00"),
+		widget.TextOpts.WidgetOpts(
+			widget.WidgetOpts.OnUpdate(func(w widget.HasWidget) {
+				cx, cy := cam.Position()
+				cz := cam.Zoom() * 100
+				str := fmt.Sprintf(
+					"Cam: %.0fx%.0f  %0.f%%    Chunks: %d / %d    TPS: %2.0f    FPS: %2.0f",
+					cx, cy, cz,
+					rdr.DrawnChunks(), len(wrld.Chunks()),
+					ebiten.ActualTPS(), ebiten.ActualFPS())
+				if str != fps.Label {
+					fps.Label = str
+					c.RequestRelayout()
+				}
+			}),
+		))
+
 	c.AddChild(widget.NewText(
 		widget.TextOpts.TextLabel("Left"),
 	))
 
-	c.AddChild(widget.NewText(
-		widget.TextOpts.TextLabel("Right"),
-	))
+	c.AddChild(fps)
 
 	return c
 }

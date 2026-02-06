@@ -12,8 +12,14 @@ type Camera interface {
 	WorldToScreen(wx, wy float64) (sx, sy float64)
 	ScreenToWorld(sx, sy float64) (wx, wy float64)
 	Move(dx, dy float64)
+	// MoveTo sets camera world position to
 	MoveTo(x, y float64)
+	// Position returns camera world position
 	Position() (x, y float64)
+	// ScreenMoveTo set camera screen position
+	ScreenMoveTo(x, y int)
+	// ScreenPosition returns camera screen position
+	ScreenPosition() (w, y int)
 	ZoomAt(factor float64, screenX, screenY float64)
 	SetZoom(zoom float64)
 	Zoom() float64
@@ -27,6 +33,7 @@ type Camera interface {
 
 type camera struct {
 	x, y   float64 // World coordinates
+	sx, sy int     // Screen coordinates
 	zoom   float64 // 1 = 100%, >1 = zoom in, <1 = zoom out
 	w, h   int     // Viewport size, pixels
 	locked bool
@@ -37,6 +44,8 @@ func NewCamera() Camera {
 	return &camera{
 		x:            0,
 		y:            0,
+		sx:           0,
+		sy:           0,
 		zoom:         1,
 		w:            800,
 		h:            600,
@@ -82,6 +91,21 @@ func (c *camera) ScreenToWorld(sx, sy float64) (wx, wy float64) {
 	wy = (sy-float64(c.h)/2)/c.zoom + c.y
 
 	return
+}
+
+func (c *camera) ScreenMoveTo(sx, sy int) {
+	if c.sx == sx && c.sy == sy {
+		return
+	}
+
+	c.sx = sx
+	c.sy = sy
+
+	c.SetChanged()
+}
+
+func (c *camera) ScreenPosition() (sx, sy int) {
+	return c.sx, c.sy
 }
 
 func (c *camera) Move(dx, dy float64) {

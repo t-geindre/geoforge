@@ -28,7 +28,6 @@ func (c *WheelZoom) Update() {
 			factor = 1.0 / factor
 		}
 
-		// clamp via cible, puis retransforme en facteur réel
 		target := old * factor
 		if target < minZoom {
 			target = minZoom
