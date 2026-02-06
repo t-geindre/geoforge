@@ -16,9 +16,6 @@ import (
 func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	//debug()
-	//return
-
 	// THEME AND LAYOUT
 	theme := ui.NewTheme()
 	layout := ui.NewLayout(theme)
@@ -46,8 +43,7 @@ func main() {
 	}
 
 	// NOISE PREVIEW (RIGHT)
-	previewWidget, previewDraw := ui.NewPreview(cam, rdr)
-	split.AddChild(previewWidget)
+	split.AddChild(ui.NewPreview(cam, rdr))
 
 	// STATUS
 	status := ui.NewStatus(theme, rdr, wrld, cam)
@@ -68,7 +64,6 @@ func main() {
 	// DRAWS
 	draws := game.NewDrawFunc(func(screen *ebiten.Image) {
 		ui.Draw(screen)
-		previewDraw(screen)
 	})
 
 	if err := ebiten.RunGame(game.NewGame(updates, draws)); err != nil {
