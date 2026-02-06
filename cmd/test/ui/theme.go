@@ -1,16 +1,13 @@
 package ui
 
 import (
-	"bytes"
 	img "image"
 	"image/color"
-	"os"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/colornames"
 )
@@ -19,11 +16,24 @@ type Theme struct {
 	*widget.Theme
 	PanelTheme       *PanelTheme
 	ConnectionsTheme *ConnectionsTheme
+	IconsTheme       *IconsTheme
 }
 
-func NewTheme() *Theme {
+func NewTheme() (*Theme, error) {
 	const borderSize = 1
-	face := mustLoadTextFace("assets/fonts/Roboto-Regular.ttf", 14)
+
+	face, err := loadFrontFace("assets/fonts/Roboto-Regular.ttf", 14)
+	if err != nil {
+		return nil, err
+	}
+
+	sheet, err := loadImage("assets/icons/icons.png")
+	if err != nil {
+		return nil, err
+	}
+
+	icons := NewSheet(sheet, 24)
+	iconsColored := icons.Colorize(color.RGBA{R: 0xFF, G: 0x9F, B: 0x1C, A: 220})
 
 	return &Theme{
 		PanelTheme: &PanelTheme{
@@ -206,7 +216,20 @@ func NewTheme() *Theme {
 			KnobColor:        color.RGBA{R: 0xFF, G: 0x9F, B: 0x1C, A: 220},
 			KnobActiveColor:  color.RGBA{R: 0xFF, G: 0xFF, B: 0x8C, A: 255},
 		},
-	}
+		IconsTheme: &IconsTheme{
+			Delete: iconsColored.Get(0, 0),
+			Open:   iconsColored.Get(2, 0),
+			Save:   iconsColored.Get(3, 0),
+			Logo:   icons.Get(4, 0),
+		},
+	}, nil
+}
+
+type IconsTheme struct {
+	Delete *ebiten.Image
+	Open   *ebiten.Image
+	Save   *ebiten.Image
+	Logo   *ebiten.Image
 }
 
 type PanelTheme struct {
@@ -222,26 +245,6 @@ type ConnectionsTheme struct {
 	CableWidth       float32
 	KnobColor        color.Color
 	KnobActiveColor  color.Color
-}
-
-func mustLoadTextFace(path string, size float64) *text.Face {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-
-	src, err := text.NewGoTextFaceSource(bytes.NewReader(data))
-	if err != nil {
-		panic(err)
-	}
-
-	var face text.Face
-	face = &text.GoTextFace{
-		Source: src,
-		Size:   size,
-	}
-
-	return &face
 }
 
 func getCheckboxImage() *widget.CheckboxImage {

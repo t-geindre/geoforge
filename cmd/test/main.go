@@ -12,7 +12,10 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	// THEME AND LAYOUT
-	theme := ui.NewTheme()
+	theme, err := ui.NewTheme()
+	if err != nil {
+		panic(err)
+	}
 	layout := ui.NewLayout(theme)
 
 	// NOISE SETUP
