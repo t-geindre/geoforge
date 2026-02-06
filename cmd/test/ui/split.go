@@ -3,6 +3,7 @@ package ui
 import (
 	img "image"
 
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -39,6 +40,8 @@ func NewSplitBar(t *Theme, l *SplitLayout, c *widget.Container) *widget.Button {
 		widget.ButtonOpts.WidgetOpts(
 			widget.WidgetOpts.OnUpdate(b.Update),
 			widget.WidgetOpts.MinSize(l.BarWidth, l.BarWidth),
+			widget.WidgetOpts.CursorHovered(input.CURSOR_EWRESIZE),
+			widget.WidgetOpts.CursorPressed(input.CURSOR_EWRESIZE),
 		),
 	)
 
@@ -50,6 +53,7 @@ func (b *SplitBar) Update(_ widget.HasWidget) {
 		x, _ := ebiten.CursorPosition()
 		b.layout.SplitX = x - b.grabDX
 		b.container.RequestRelayout()
+		input.SetCursorShape(input.CURSOR_EWRESIZE)
 	}
 }
 

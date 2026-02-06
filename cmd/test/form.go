@@ -3,6 +3,7 @@ package main
 import (
 	"geoforge/cmd/test/ui"
 
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 )
 
@@ -38,7 +39,11 @@ func getGridForm(theme *ui.Theme, connections *ui.Connections) *widget.Container
 
 	grid.AddChild(
 		widget.NewText(widget.TextOpts.TextLabel("Button")),
-		widget.NewButton(widget.ButtonOpts.TextLabel("Button")),
+		widget.NewButton(widget.ButtonOpts.TextLabel("Button"),
+			widget.ButtonOpts.WidgetOpts(
+				widget.WidgetOpts.CursorHovered(input.CURSOR_POINTER),
+			),
+		),
 	)
 	grid.AddChild(
 		widget.NewText(widget.TextOpts.TextLabel("Checkbox")),
