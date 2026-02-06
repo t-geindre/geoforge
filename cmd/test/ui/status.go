@@ -23,30 +23,36 @@ func NewStatus(theme *Theme, rdr *render.Renderer, wrld *world.World, cam camera
 		),
 	)
 
-	var fps *widget.Text
-	fps = widget.NewText(
-		widget.TextOpts.TextLabel("FPS: 00"),
+	var right *widget.Text
+	right = widget.NewText(
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.OnUpdate(func(w widget.HasWidget) {
 				cx, cy := cam.Position()
 				cz := cam.Zoom() * 100
 				str := fmt.Sprintf(
-					"Cam: %.0fx%.0f  %0.f%%    Chunks: %d / %d    TPS: %2.0f    FPS: %2.0f",
+					"Cam: %.0f X %.0f - %.0f%%    Chunks: %d / %d",
 					cx, cy, cz,
 					rdr.DrawnChunks(), len(wrld.Chunks()),
-					ebiten.ActualTPS(), ebiten.ActualFPS())
-				if str != fps.Label {
-					fps.Label = str
+				)
+				if str != right.Label {
+					right.Label = str
 					c.RequestRelayout()
 				}
 			}),
-		))
+		),
+	)
 
-	c.AddChild(widget.NewText(
-		widget.TextOpts.TextLabel("Left"),
-	))
+	var left *widget.Text
+	left = widget.NewText(
+		widget.TextOpts.WidgetOpts(
+			widget.WidgetOpts.OnUpdate(func(w widget.HasWidget) {
+				left.Label = fmt.Sprintf("TPS: %02.0f    FPS: %02.0f", ebiten.ActualTPS(), ebiten.ActualFPS())
+			}),
+		),
+	)
 
-	c.AddChild(fps)
+	c.AddChild(left)
+	c.AddChild(right)
 
 	return c
 }

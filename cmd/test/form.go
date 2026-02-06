@@ -6,7 +6,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-func getGridForm(theme *ui.Theme) *widget.Container {
+func getGridForm(theme *ui.Theme, connections *ui.Connections) *widget.Container {
 	grid := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
@@ -56,6 +56,20 @@ func getGridForm(theme *ui.Theme) *widget.Container {
 			widget.TextOpts.TextLabel("Text Input"),
 		),
 		widget.NewTextInput(),
+	)
+
+	grid.AddChild(
+		widget.NewText(
+			widget.TextOpts.TextLabel("Input"),
+		),
+		connections.NewConnector(ui.ConDirectionInput),
+	)
+
+	grid.AddChild(
+		widget.NewText(
+			widget.TextOpts.TextLabel("Output"),
+		),
+		connections.NewConnector(ui.ConDirectionOutput),
 	)
 
 	return grid

@@ -20,7 +20,6 @@ func NewPreview(cam camera.Camera, rdr *render.Renderer) *Preview {
 		cam:      cam,
 		renderer: rdr,
 		widget: widget.NewWidget(
-			widget.WidgetOpts.TrackHover(true),
 			widget.WidgetOpts.CursorEnterHandler(func(args *widget.WidgetCursorEnterEventArgs) {
 				cam.Lock(false)
 			}),
