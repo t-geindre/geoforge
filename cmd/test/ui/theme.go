@@ -17,14 +17,13 @@ import (
 
 type Theme struct {
 	*widget.Theme
-	PanelTheme *PanelTheme
+	PanelTheme       *PanelTheme
+	ConnectionsTheme *ConnectionsTheme
 }
 
 func NewTheme() *Theme {
 	const borderSize = 1
 	face := mustLoadTextFace("assets/fonts/Roboto-Regular.ttf", 14)
-	//face := mustLoadTextFace("assets/fonts/Gobold Light.otf", 14)
-	//face := mustLoadTextFace("assets/fonts/AlegreyaSansSC-Regular.ttf", 16)
 
 	return &Theme{
 		PanelTheme: &PanelTheme{
@@ -200,6 +199,13 @@ func NewTheme() *Theme {
 				Image: getCheckboxImage(),
 			},
 		},
+		ConnectionsTheme: &ConnectionsTheme{
+			CableColor:       color.RGBA{R: 0x2F, G: 0x7C, B: 0xF6, A: 100},
+			CableActiveColor: color.RGBA{R: 0x4F, G: 0xD1, B: 0xFF, A: 200},
+			CableWidth:       4,
+			KnobColor:        color.RGBA{R: 0xFF, G: 0x9F, B: 0x1C, A: 220},
+			KnobActiveColor:  color.RGBA{R: 0xFF, G: 0xFF, B: 0x8C, A: 255},
+		},
 	}
 }
 
@@ -208,6 +214,14 @@ type PanelTheme struct {
 	ForegroundImage *image.NineSlice
 	Padding         *widget.Insets
 	Spacing         int
+}
+
+type ConnectionsTheme struct {
+	CableColor       color.Color
+	CableActiveColor color.Color
+	CableWidth       float32
+	KnobColor        color.Color
+	KnobActiveColor  color.Color
 }
 
 func mustLoadTextFace(path string, size float64) *text.Face {

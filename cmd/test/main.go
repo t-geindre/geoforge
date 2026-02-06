@@ -31,7 +31,7 @@ func main() {
 	split.AddChild(desktop)
 
 	// CONNECTORS
-	conn := ui.NewConnections(desktop)
+	conn := ui.NewConnections(theme, desktop)
 
 	// DRAGGABLES
 	for j := 0; j < 3; j++ {

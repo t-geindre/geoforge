@@ -15,29 +15,27 @@ type cable struct {
 }
 
 type Connections struct {
-	container      widget.HasWidget
-	hover          *Connector
-	dragging       *Connector
-	handlerClear   map[*Connector]func()
-	connectors     []*Connector
-	cables         []*cable
-	cableCol       color.Color
-	cableActiveCol color.Color
+	container    widget.HasWidget
+	hover        *Connector
+	dragging     *Connector
+	handlerClear map[*Connector]func()
+	connectors   []*Connector
+	cables       []*cable
+	theme        *Theme
 }
 
-func NewConnections(c widget.HasWidget) *Connections {
+func NewConnections(t *Theme, c widget.HasWidget) *Connections {
 	return &Connections{
-		container:      c,
-		handlerClear:   make(map[*Connector]func()),
-		cables:         []*cable{},
-		connectors:     []*Connector{},
-		cableCol:       color.RGBA{R: 0x2F, G: 0x7C, B: 0xF6, A: 100},
-		cableActiveCol: color.RGBA{R: 0x4F, G: 0xD1, B: 0xFF, A: 200},
+		container:    c,
+		handlerClear: make(map[*Connector]func()),
+		cables:       []*cable{},
+		connectors:   []*Connector{},
+		theme:        t,
 	}
 }
 
 func (c *Connections) NewConnector(dir ConDirection) *Connector {
-	conn := NewConnector(dir)
+	conn := NewConnector(c.theme, dir)
 
 	// Drag state
 	dStartClear := conn.GetWidget().MouseButtonPressedEvent.AddHandler(func(e any) {
@@ -155,17 +153,17 @@ func (c *Connections) DragEnds(conn *Connector) {
 func (c *Connections) Draw(screen *ebiten.Image) {
 	dst := screen.SubImage(c.container.GetWidget().Rect).(*ebiten.Image)
 	for _, cl := range c.cables {
-		c.DrawCable(dst, cl.from.center, cl.to.center, c.cableCol)
+		c.DrawCable(dst, cl.from.center, cl.to.center, c.theme.ConnectionsTheme.CableColor)
 	}
 
 	if c.dragging != nil {
 		if c.isValidTarget(c.dragging, c.hover) {
-			c.DrawCable(dst, c.dragging.center, c.hover.center, c.cableActiveCol)
+			c.DrawCable(dst, c.dragging.center, c.hover.center, c.theme.ConnectionsTheme.CableActiveColor)
 			return
 		}
 
 		mouseX, mouseY := ebiten.CursorPosition()
-		c.DrawCable(dst, c.dragging.center, image.Point{X: mouseX, Y: mouseY}, c.cableActiveCol)
+		c.DrawCable(dst, c.dragging.center, image.Point{X: mouseX, Y: mouseY}, c.theme.ConnectionsTheme.CableActiveColor)
 	}
 }
 
@@ -187,7 +185,7 @@ func (c *Connections) DrawCable(screen *ebiten.Image, from, to image.Point, col 
 	path.QuadTo(cx, cy, x1, y1)
 
 	strokeOpt := &vector.StrokeOptions{
-		Width:    4,
+		Width:    c.theme.ConnectionsTheme.CableWidth,
 		LineCap:  vector.LineCapRound,
 		LineJoin: vector.LineJoinRound,
 	}

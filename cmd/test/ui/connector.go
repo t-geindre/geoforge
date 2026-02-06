@@ -2,7 +2,6 @@ package ui
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -24,9 +23,10 @@ type Connector struct {
 	dir       ConDirection
 	dest      *Connector
 	highlight bool
+	theme     *Theme
 }
 
-func NewConnector(dir ConDirection) *Connector {
+func NewConnector(theme *Theme, dir ConDirection) *Connector {
 	var c *Connector
 	c = &Connector{
 		widget: widget.NewWidget(
@@ -37,7 +37,8 @@ func NewConnector(dir ConDirection) *Connector {
 				c.highlight = false
 			}),
 		),
-		dir: dir,
+		dir:   dir,
+		theme: theme,
 	}
 	return c
 }
@@ -81,11 +82,11 @@ func (p *Connector) SetLocation(rect image.Rectangle) {
 	p.center = image.Point{X: rect.Min.X + rect.Dx()/2, Y: rect.Min.Y + rect.Dy()/2}
 
 	p.knob = ebiten.NewImage(rect.Dx(), rect.Dy())
-	col := color.RGBA{R: 0xFF, G: 0x9F, B: 0x1C, A: 220}
+	col := p.theme.ConnectionsTheme.KnobColor
 	vector.StrokeCircle(p.knob, float32(w)/2, float32(h)/2, float32(h)/2-2, 2, col, true)
 	vector.FillCircle(p.knob, float32(w)/2, float32(h)/2, float32(h)/4-2, col, true)
 
-	colHl := color.RGBA{R: 0xFF, G: 0xFF, B: 0x8C, A: 255}
+	colHl := p.theme.ConnectionsTheme.KnobActiveColor
 	p.knobHl = ebiten.NewImage(rect.Dx(), rect.Dy())
 	vector.StrokeCircle(p.knobHl, float32(w)/2, float32(h)/2, float32(h)/2-2, 2, colHl, true)
 	vector.FillCircle(p.knobHl, float32(w)/2, float32(h)/2, float32(h)/4-2, colHl, true)
