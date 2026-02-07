@@ -1,4 +1,4 @@
-package ui
+package layout
 
 import (
 	"geoforge/cmd/test/ui/theme"

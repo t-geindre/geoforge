@@ -1,4 +1,4 @@
-package ui
+package layout
 
 import "github.com/ebitenui/ebitenui/widget"
 

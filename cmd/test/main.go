@@ -2,6 +2,7 @@ package main
 
 import (
 	"geoforge/cmd/test/ui"
+	"geoforge/cmd/test/ui/layout"
 	"geoforge/cmd/test/ui/theme"
 	"geoforge/game"
 
@@ -19,18 +20,18 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	layout := ui.NewLayout(theme)
+	lyt := layout.NewLayout(theme)
 
 	// NOISE SETUP
 	cam, wrld, rdr := noiseSetup()
 
 	// MAIN MENU
-	menu := ui.NewMenu(theme)
-	layout.AddChild(menu)
+	menu := layout.NewMenu(theme)
+	lyt.AddChild(menu)
 
 	// SPLIT PAN
 	split := ui.NewSplit(theme)
-	layout.AddChild(split)
+	lyt.AddChild(split)
 
 	// DESKTOP (LEFT)
 	desktop := ui.NewDesktop(1000, 1000)
@@ -57,11 +58,11 @@ func main() {
 	split.AddChild(ui.NewPreview(cam, rdr))
 
 	// STATUS
-	status := ui.NewStatus(theme, rdr, wrld, cam)
-	layout.AddChild(status)
+	status := layout.NewStatus(theme, rdr, wrld, cam)
+	lyt.AddChild(status)
 
 	// UI
-	ui := &ebitenui.UI{Container: layout.Container}
+	ui := &ebitenui.UI{Container: lyt.Container}
 	ui.PrimaryTheme = theme.Theme
 
 	// UPDATES
