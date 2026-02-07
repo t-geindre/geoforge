@@ -137,11 +137,13 @@ func (c *camera) ZoomAt(factor float64, screenX, screenY float64) {
 		return
 	}
 
-	wx, wy := c.ScreenToWorld(screenX, screenY)
-	c.zoom *= factor
-	wx2, wy2 := c.ScreenToWorld(screenX, screenY)
+	localX := screenX - float64(c.sx)
+	localY := screenY - float64(c.sy)
 
-	// Center the camera to keep the point under the cursor fixed
+	wx, wy := c.ScreenToWorld(localX, localY)
+	c.zoom *= factor
+	wx2, wy2 := c.ScreenToWorld(localX, localY)
+
 	c.x += wx - wx2
 	c.y += wy - wy2
 
