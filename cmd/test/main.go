@@ -2,6 +2,7 @@ package main
 
 import (
 	"geoforge/cmd/test/ui"
+	"geoforge/cmd/test/ui/theme"
 	"geoforge/game"
 
 	"github.com/ebitenui/ebitenui"
@@ -14,7 +15,7 @@ func main() {
 	ebiten.MaximizeWindow()
 
 	// THEME AND LAYOUT
-	theme, err := ui.NewTheme()
+	theme, err := theme.NewDefaultTheme()
 	if err != nil {
 		panic(err)
 	}

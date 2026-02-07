@@ -1,12 +1,16 @@
 package ui
 
-import "github.com/ebitenui/ebitenui/widget"
+import (
+	"geoforge/cmd/test/ui/theme"
+
+	"github.com/ebitenui/ebitenui/widget"
+)
 
 type Layout struct {
 	*widget.Container
 }
 
-func NewLayout(theme *Theme) *Layout {
+func NewLayout(theme *theme.Theme) *Layout {
 	return &Layout{
 		Container: widget.NewContainer(
 			widget.ContainerOpts.BackgroundImage(theme.PanelTheme.BackgroundImage),

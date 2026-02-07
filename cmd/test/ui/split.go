@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"geoforge/cmd/test/ui/theme"
 	img "image"
 
 	"github.com/ebitenui/ebitenui/input"
@@ -8,7 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewSplit(theme *Theme) *widget.Container {
+func NewSplit(theme *theme.Theme) *widget.Container {
 	layout := NewSplitLayout()
 	container := widget.NewContainer(
 		widget.ContainerOpts.Layout(layout),
@@ -26,7 +27,7 @@ type SplitBar struct {
 	container *widget.Container
 }
 
-func NewSplitBar(t *Theme, l *SplitLayout, c *widget.Container) *widget.Button {
+func NewSplitBar(t *theme.Theme, l *SplitLayout, c *widget.Container) *widget.Button {
 	b := &SplitBar{layout: l, container: c}
 
 	b.Button = widget.NewButton(

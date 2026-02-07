@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"geoforge/cmd/test/ui/theme"
+
 	"github.com/ebitenui/ebitenui/widget"
 )
 
@@ -14,7 +16,7 @@ type Draggable struct {
 	w, h    int
 }
 
-func NewDraggable(wx, wy int, theme *Theme, icon *widget.GraphicImage) *Draggable {
+func NewDraggable(wx, wy int, theme *theme.Theme, icon *widget.GraphicImage) *Draggable {
 	container := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			Padding: &widget.Insets{Left: wx, Top: wy},

@@ -2,12 +2,13 @@ package main
 
 import (
 	"geoforge/cmd/test/ui"
+	"geoforge/cmd/test/ui/theme"
 
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-func getGridForm(theme *ui.Theme, connections *ui.Connections) *widget.Container {
+func getGridForm(theme *theme.Theme, connections *ui.Connections) *widget.Container {
 	grid := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(

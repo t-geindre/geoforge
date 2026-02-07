@@ -1,6 +1,7 @@
 package ui
 
 import (
+	theme2 "geoforge/cmd/test/ui/theme"
 	"image"
 	"image/color"
 	"math"
@@ -21,10 +22,10 @@ type Connections struct {
 	handlerClear map[*Connector]func()
 	connectors   []*Connector
 	cables       []*cable
-	theme        *Theme
+	theme        *theme2.Theme
 }
 
-func NewConnections(t *Theme, c widget.HasWidget) *Connections {
+func NewConnections(t *theme2.Theme, c widget.HasWidget) *Connections {
 	return &Connections{
 		container:    c,
 		handlerClear: make(map[*Connector]func()),

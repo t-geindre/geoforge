@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"geoforge/camera"
+	"geoforge/cmd/test/ui/theme"
 	"geoforge/render"
 	"geoforge/world"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewStatus(theme *Theme, rdr *render.Renderer, wrld *world.World, cam camera.Camera) *widget.Container {
+func NewStatus(theme *theme.Theme, rdr *render.Renderer, wrld *world.World, cam camera.Camera) *widget.Container {
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.WidgetOpts(),

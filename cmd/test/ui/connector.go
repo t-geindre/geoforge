@@ -1,6 +1,7 @@
 package ui
 
 import (
+	theme2 "geoforge/cmd/test/ui/theme"
 	"image"
 
 	"github.com/ebitenui/ebitenui/widget"
@@ -23,10 +24,10 @@ type Connector struct {
 	dir       ConDirection
 	dest      *Connector
 	highlight bool
-	theme     *Theme
+	theme     *theme2.Theme
 }
 
-func NewConnector(theme *Theme, dir ConDirection) *Connector {
+func NewConnector(theme *theme2.Theme, dir ConDirection) *Connector {
 	var c *Connector
 	c = &Connector{
 		widget: widget.NewWidget(

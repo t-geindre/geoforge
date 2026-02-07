@@ -1,11 +1,13 @@
 package ui
 
 import (
+	"geoforge/cmd/test/ui/theme"
+
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-func NewMenu(theme *Theme) *widget.Container {
+func NewMenu(theme *theme.Theme) *widget.Container {
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.Layout(
@@ -38,7 +40,7 @@ func NewMenu(theme *Theme) *widget.Container {
 	return c
 }
 
-func newMenuEntry(theme *Theme, label string, icon *widget.GraphicImage) *widget.Container {
+func newMenuEntry(theme *theme.Theme, label string, icon *widget.GraphicImage) *widget.Container {
 	iconWidget := widget.NewGraphic(
 		widget.GraphicOpts.Image(icon.Idle),
 		widget.GraphicOpts.WidgetOpts(
@@ -94,7 +96,7 @@ func newMenuIcon(icon *widget.GraphicImage) *widget.Graphic {
 	)
 }
 
-func newMenuBox(theme *Theme) *widget.Container {
+func newMenuBox(theme *theme.Theme) *widget.Container {
 	return widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Spacing(theme.PanelTheme.Spacing),
