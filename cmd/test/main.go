@@ -10,6 +10,8 @@ import (
 
 func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetWindowTitle("GeoForge - Noise Editor")
+	ebiten.MaximizeWindow()
 
 	// THEME AND LAYOUT
 	theme, err := ui.NewTheme()
@@ -37,10 +39,16 @@ func main() {
 	conn := ui.NewConnections(theme, desktop)
 
 	// DRAGGABLES
-	for j := 0; j < 3; j++ {
-		drag := ui.NewDraggable(j*200, 50, theme)
+	for j := 0; j < 4; j++ {
+		icon := theme.IconsTheme.NoiseSmall
+		title := "Noise " + string(rune('A'+j))
+		if j == 0 {
+			icon = theme.IconsTheme.Rendering
+			title = "Renderer"
+		}
+		drag := ui.NewDraggable(j*200, 50, theme, icon)
 		drag.AddChild(getGridForm(theme, conn))
-		drag.SetTitle("Draggable " + string(rune('A'+j)))
+		drag.SetTitle(title)
 		desktop.AddDraggable(drag)
 	}
 

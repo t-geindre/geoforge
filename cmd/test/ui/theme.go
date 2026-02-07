@@ -8,16 +8,10 @@ import (
 	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/colornames"
 )
-
-type Theme struct {
-	*widget.Theme
-	PanelTheme       *PanelTheme
-	ConnectionsTheme *ConnectionsTheme
-	IconsTheme       *IconsTheme
-}
 
 func NewTheme() (*Theme, error) {
 	const borderSize = 1
@@ -27,13 +21,23 @@ func NewTheme() (*Theme, error) {
 		return nil, err
 	}
 
+	menuFace, err := loadFrontFace("assets/fonts/Roboto-Regular.ttf", 18) // TODO: should cache fonts
+	if err != nil {
+		return nil, err
+	}
+
 	sheet, err := loadImage("assets/icons/icons.png")
 	if err != nil {
 		return nil, err
 	}
 
+	blue := color.RGBA{R: 0x2F, G: 0x7C, B: 0xF6, A: 100}
+	orange := color.RGBA{R: 0xFF, G: 0x9F, B: 0x1C, A: 220}
+
 	icons := NewSheet(sheet, 24)
-	iconsColored := icons.Colorize(color.RGBA{R: 0xFF, G: 0x9F, B: 0x1C, A: 220})
+	iconsOrange := icons.Colorize(orange)
+	iconsBlue := icons.Colorize(blue)
+	iconsBlueSmall := iconsBlue.Scale(.6)
 
 	return &Theme{
 		PanelTheme: &PanelTheme{
@@ -210,26 +214,66 @@ func NewTheme() (*Theme, error) {
 			},
 		},
 		ConnectionsTheme: &ConnectionsTheme{
-			CableColor:       color.RGBA{R: 0x2F, G: 0x7C, B: 0xF6, A: 100},
+			CableColor:       blue,
 			CableActiveColor: color.RGBA{R: 0x4F, G: 0xD1, B: 0xFF, A: 200},
 			CableWidth:       4,
-			KnobColor:        color.RGBA{R: 0xFF, G: 0x9F, B: 0x1C, A: 220},
+			KnobColor:        orange,
 			KnobActiveColor:  color.RGBA{R: 0xFF, G: 0xFF, B: 0x8C, A: 255},
 		},
 		IconsTheme: &IconsTheme{
-			Delete: iconsColored.Get(0, 0),
-			Open:   iconsColored.Get(2, 0),
-			Save:   iconsColored.Get(3, 0),
-			Logo:   icons.Get(4, 0),
+			Add:        &widget.GraphicImage{Idle: icons.Get(0, 0), Hover: iconsBlue.Get(0, 0)},
+			Camera:     &widget.GraphicImage{Idle: iconsOrange.Get(1, 0)},
+			Rendering:  &widget.GraphicImage{Idle: iconsBlueSmall.Get(1, 0)},
+			Center:     &widget.GraphicImage{Idle: icons.Get(2, 0), Hover: iconsBlue.Get(2, 0)},
+			Delete:     &widget.GraphicImage{Idle: icons.Get(3, 0), Hover: iconsBlue.Get(3, 0)},
+			File:       &widget.GraphicImage{Idle: iconsOrange.Get(4, 0)},
+			Noise:      &widget.GraphicImage{Idle: iconsOrange.Get(6, 0)},
+			NoiseSmall: &widget.GraphicImage{Idle: iconsBlueSmall.Get(6, 0)},
+			Open:       &widget.GraphicImage{Idle: icons.Get(7, 0), Hover: iconsBlue.Get(7, 0)},
+			Save:       &widget.GraphicImage{Idle: icons.Get(0, 1), Hover: iconsBlue.Get(0, 1)},
+			Zoom:       &widget.GraphicImage{Idle: icons.Get(1, 1), Hover: iconsBlue.Get(1, 1)},
+		},
+		MainMenuTheme: &MainMenuTheme{
+			ButtonImage: &widget.ButtonImage{
+				Idle:  image.NewNineSliceColor(color.NRGBA{51, 51, 51, 255}),
+				Hover: image.NewNineSliceColor(color.NRGBA{77, 77, 77, 255}),
+			},
+			ButtonPadding: &widget.Insets{Left: 10, Right: 10, Top: 5, Bottom: 5},
+			IconSpacing:   5,
+			Font:          menuFace,
+			TextColor:     colornames.White,
 		},
 	}, nil
 }
 
+type Theme struct {
+	*widget.Theme
+	PanelTheme       *PanelTheme
+	ConnectionsTheme *ConnectionsTheme
+	IconsTheme       *IconsTheme
+	MainMenuTheme    *MainMenuTheme
+}
+
+type MainMenuTheme struct {
+	ButtonImage   *widget.ButtonImage
+	ButtonPadding *widget.Insets
+	IconSpacing   int
+	Font          *text.Face
+	TextColor     color.Color
+}
+
 type IconsTheme struct {
-	Delete *ebiten.Image
-	Open   *ebiten.Image
-	Save   *ebiten.Image
-	Logo   *ebiten.Image
+	Add        *widget.GraphicImage
+	Camera     *widget.GraphicImage
+	Rendering  *widget.GraphicImage
+	Center     *widget.GraphicImage
+	Delete     *widget.GraphicImage
+	File       *widget.GraphicImage
+	Noise      *widget.GraphicImage
+	NoiseSmall *widget.GraphicImage
+	Open       *widget.GraphicImage
+	Save       *widget.GraphicImage
+	Zoom       *widget.GraphicImage
 }
 
 type PanelTheme struct {

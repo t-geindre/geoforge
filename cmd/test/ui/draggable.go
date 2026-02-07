@@ -14,7 +14,7 @@ type Draggable struct {
 	w, h    int
 }
 
-func NewDraggable(wx, wy int, theme *Theme) *Draggable {
+func NewDraggable(wx, wy int, theme *Theme, icon *widget.GraphicImage) *Draggable {
 	container := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			Padding: &widget.Insets{Left: wx, Top: wy},
@@ -29,22 +29,26 @@ func NewDraggable(wx, wy int, theme *Theme) *Draggable {
 	header := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.Layout(
-			widget.NewAnchorLayout(
-				widget.AnchorLayoutOpts.Padding(theme.PanelTheme.Padding),
+			widget.NewRowLayout(
+				widget.RowLayoutOpts.Padding(theme.PanelTheme.Padding),
+				widget.RowLayoutOpts.Spacing(theme.PanelTheme.Spacing),
 			),
 		),
+	)
+	titleIcon := widget.NewGraphic(
+		widget.GraphicOpts.Image(icon.Idle),
 	)
 	title := widget.NewText(
 		widget.TextOpts.TextLabel("Draggable"),
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(
-				widget.AnchorLayoutData{
-					HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				widget.RowLayoutData{
+					Position: widget.RowLayoutPositionCenter,
 				},
 			),
 		),
 	)
-	header.AddChild(title)
+	header.AddChild(titleIcon, title)
 	container.AddChild(header)
 
 	return &Draggable{
