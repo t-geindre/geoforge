@@ -25,17 +25,17 @@ type MainMenuTheme struct {
 }
 
 type IconsTheme struct {
-	Add        *widget.GraphicImage
-	Camera     *widget.GraphicImage
-	Rendering  *widget.GraphicImage
-	Center     *widget.GraphicImage
-	Delete     *widget.GraphicImage
-	File       *widget.GraphicImage
-	Noise      *widget.GraphicImage
-	NoiseSmall *widget.GraphicImage
-	Open       *widget.GraphicImage
-	Save       *widget.GraphicImage
-	Zoom       *widget.GraphicImage
+	Add         *widget.GraphicImage
+	Camera      *widget.GraphicImage
+	CameraSmall *widget.GraphicImage
+	Center      *widget.GraphicImage
+	Delete      *widget.GraphicImage
+	File        *widget.GraphicImage
+	Noise       *widget.GraphicImage
+	NoiseSmall  *widget.GraphicImage
+	Open        *widget.GraphicImage
+	Save        *widget.GraphicImage
+	Zoom        *widget.GraphicImage
 }
 
 type PanelTheme struct {

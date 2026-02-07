@@ -30,11 +30,16 @@ func NewDefaultTheme() (*Theme, error) {
 
 	blue := color.RGBA{R: 0x2F, G: 0x7C, B: 0xF6, A: 100}
 	orange := color.RGBA{R: 0xFF, G: 0x9F, B: 0x1C, A: 220}
+	green := color.RGBA{R: 0x4C, G: 0xC9, B: 0x6F, A: 200}
 
 	icons := NewSheet(sheet, 24)
+
 	iconsOrange := icons.Colorize(orange)
 	iconsBlue := icons.Colorize(blue)
+	iconsGreen := icons.Colorize(green)
+
 	iconsBlueSmall := iconsBlue.Scale(.6)
+	iconsGreenSmall := iconsGreen.Scale(.6)
 
 	return &Theme{
 		PanelTheme: &PanelTheme{
@@ -215,20 +220,20 @@ func NewDefaultTheme() (*Theme, error) {
 			CableActiveColor: color.RGBA{R: 0x4F, G: 0xD1, B: 0xFF, A: 200},
 			CableWidth:       4,
 			KnobColor:        orange,
-			KnobActiveColor:  color.RGBA{R: 0xFF, G: 0xFF, B: 0x8C, A: 255},
+			KnobActiveColor:  green,
 		},
 		IconsTheme: &IconsTheme{
-			Add:        &widget.GraphicImage{Idle: icons.Get(0, 0), Hover: iconsBlue.Get(0, 0)},
-			Camera:     &widget.GraphicImage{Idle: iconsOrange.Get(1, 0)},
-			Rendering:  &widget.GraphicImage{Idle: iconsBlueSmall.Get(1, 0)},
-			Center:     &widget.GraphicImage{Idle: icons.Get(2, 0), Hover: iconsBlue.Get(2, 0)},
-			Delete:     &widget.GraphicImage{Idle: icons.Get(3, 0), Hover: iconsBlue.Get(3, 0)},
-			File:       &widget.GraphicImage{Idle: iconsOrange.Get(4, 0)},
-			Noise:      &widget.GraphicImage{Idle: iconsOrange.Get(6, 0)},
-			NoiseSmall: &widget.GraphicImage{Idle: iconsBlueSmall.Get(6, 0)},
-			Open:       &widget.GraphicImage{Idle: icons.Get(7, 0), Hover: iconsBlue.Get(7, 0)},
-			Save:       &widget.GraphicImage{Idle: icons.Get(0, 1), Hover: iconsBlue.Get(0, 1)},
-			Zoom:       &widget.GraphicImage{Idle: icons.Get(1, 1), Hover: iconsBlue.Get(1, 1)},
+			Add:         &widget.GraphicImage{Idle: icons.Get(0, 0), Hover: iconsBlue.Get(0, 0)},
+			Camera:      &widget.GraphicImage{Idle: iconsGreen.Get(1, 0)},
+			CameraSmall: &widget.GraphicImage{Idle: iconsGreenSmall.Get(1, 0)},
+			Center:      &widget.GraphicImage{Idle: icons.Get(2, 0), Hover: iconsGreen.Get(2, 0)},
+			Delete:      &widget.GraphicImage{Idle: icons.Get(3, 0), Hover: iconsBlue.Get(3, 0)},
+			File:        &widget.GraphicImage{Idle: iconsOrange.Get(4, 0)},
+			Noise:       &widget.GraphicImage{Idle: iconsBlue.Get(6, 0)},
+			NoiseSmall:  &widget.GraphicImage{Idle: iconsBlueSmall.Get(6, 0)},
+			Open:        &widget.GraphicImage{Idle: icons.Get(7, 0), Hover: iconsOrange.Get(7, 0)},
+			Save:        &widget.GraphicImage{Idle: icons.Get(0, 1), Hover: iconsOrange.Get(0, 1)},
+			Zoom:        &widget.GraphicImage{Idle: icons.Get(1, 1), Hover: iconsGreen.Get(1, 1)},
 		},
 		MainMenuTheme: &MainMenuTheme{
 			ButtonImage: &widget.ButtonImage{

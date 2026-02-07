@@ -4,6 +4,7 @@ import (
 	theme2 "geoforge/cmd/test/ui/theme"
 	"image"
 
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -37,6 +38,8 @@ func NewConnector(theme *theme2.Theme, dir ConDirection) *Connector {
 			widget.WidgetOpts.CursorExitHandler(func(args *widget.WidgetCursorExitEventArgs) {
 				c.highlight = false
 			}),
+			widget.WidgetOpts.CursorHovered(input.CURSOR_POINTER),
+			widget.WidgetOpts.CursorPressed(input.CURSOR_POINTER),
 		),
 		dir:   dir,
 		theme: theme,

@@ -62,7 +62,7 @@ func main() {
 		icon := theme.IconsTheme.NoiseSmall
 		title := "Noise " + string(rune('A'+j))
 		if j == 0 {
-			icon = theme.IconsTheme.Rendering
+			icon = theme.IconsTheme.CameraSmall
 			title = "Renderer"
 		}
 		drag := widgets.NewDraggable(j*200, 50, theme, icon)
