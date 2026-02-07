@@ -1,9 +1,9 @@
 package main
 
 import (
-	"geoforge/cmd/test/ui"
 	"geoforge/cmd/test/ui/layout"
 	"geoforge/cmd/test/ui/theme"
+	"geoforge/cmd/test/ui/widgets"
 	"geoforge/game"
 
 	"github.com/ebitenui/ebitenui"
@@ -30,15 +30,15 @@ func main() {
 	lyt.AddChild(menu)
 
 	// SPLIT PAN
-	split := ui.NewSplit(theme)
+	split := widgets.NewSplit(theme)
 	lyt.AddChild(split)
 
 	// DESKTOP (LEFT)
-	desktop := ui.NewDesktop(1000, 1000)
+	desktop := widgets.NewDesktop(1000, 1000)
 	split.AddChild(desktop)
 
 	// CONNECTORS
-	conn := ui.NewConnections(theme, desktop)
+	conn := widgets.NewConnections(theme, desktop)
 
 	// DRAGGABLES
 	for j := 0; j < 4; j++ {
@@ -48,14 +48,14 @@ func main() {
 			icon = theme.IconsTheme.Rendering
 			title = "Renderer"
 		}
-		drag := ui.NewDraggable(j*200, 50, theme, icon)
+		drag := widgets.NewDraggable(j*200, 50, theme, icon)
 		drag.AddChild(getGridForm(theme, conn))
 		drag.SetTitle(title)
 		desktop.AddDraggable(drag)
 	}
 
 	// NOISE PREVIEW (RIGHT)
-	split.AddChild(ui.NewPreview(cam, rdr))
+	split.AddChild(widgets.NewPreview(cam, rdr))
 
 	// STATUS
 	status := layout.NewStatus(theme, rdr, wrld, cam)

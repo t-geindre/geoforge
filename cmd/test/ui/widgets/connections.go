@@ -1,4 +1,4 @@
-package ui
+package widgets
 
 import (
 	theme2 "geoforge/cmd/test/ui/theme"

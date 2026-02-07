@@ -1,14 +1,14 @@
 package main
 
 import (
-	"geoforge/cmd/test/ui"
 	"geoforge/cmd/test/ui/theme"
+	"geoforge/cmd/test/ui/widgets"
 
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-func getGridForm(theme *theme.Theme, connections *ui.Connections) *widget.Container {
+func getGridForm(theme *theme.Theme, connections *widgets.Connections) *widget.Container {
 	grid := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
@@ -68,14 +68,14 @@ func getGridForm(theme *theme.Theme, connections *ui.Connections) *widget.Contai
 		widget.NewText(
 			widget.TextOpts.TextLabel("Input"),
 		),
-		connections.NewConnector(ui.ConDirectionInput),
+		connections.NewConnector(widgets.ConDirectionInput),
 	)
 
 	grid.AddChild(
 		widget.NewText(
 			widget.TextOpts.TextLabel("Output"),
 		),
-		connections.NewConnector(ui.ConDirectionOutput),
+		connections.NewConnector(widgets.ConDirectionOutput),
 	)
 
 	return grid
