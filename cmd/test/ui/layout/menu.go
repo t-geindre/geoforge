@@ -5,10 +5,27 @@ import (
 
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewMenu(theme *theme.Theme) *widget.Container {
-	c := widget.NewContainer(
+type MenuPos int
+
+const (
+	MenuPosLeft MenuPos = iota
+	MenuPosCenter
+	MenuPosRight
+)
+
+type Menu struct {
+	*widget.Container
+	boxes map[MenuPos]*widget.Container
+	theme *theme.Theme
+}
+
+func NewMenu(theme *theme.Theme) *Menu {
+	m := &Menu{theme: theme}
+
+	m.Container = widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
@@ -19,28 +36,32 @@ func NewMenu(theme *theme.Theme) *widget.Container {
 		),
 	)
 
-	left := newMenuBox(theme)
-	center := newMenuBox(theme)
-	right := newMenuBox(theme)
+	m.boxes = make(map[MenuPos]*widget.Container)
+	m.boxes[MenuPosLeft] = m.newBox()
+	m.boxes[MenuPosCenter] = m.newBox()
+	m.boxes[MenuPosRight] = m.newBox()
 
-	left.AddChild(newMenuIcon(theme.IconsTheme.Noise))
-	left.AddChild(newMenuEntry(theme, "Add", theme.IconsTheme.Add))
-	left.AddChild(newMenuEntry(theme, "Clear", theme.IconsTheme.Delete))
+	m.Container.AddChild(
+		m.boxes[MenuPosLeft],
+		m.newBox(),
+		m.boxes[MenuPosCenter],
+		m.newBox(),
+		m.boxes[MenuPosRight],
+	)
 
-	center.AddChild(newMenuIcon(theme.IconsTheme.File))
-	center.AddChild(newMenuEntry(theme, "Open", theme.IconsTheme.Open))
-	center.AddChild(newMenuEntry(theme, "Save", theme.IconsTheme.Save))
-
-	right.AddChild(newMenuIcon(theme.IconsTheme.Camera))
-	right.AddChild(newMenuEntry(theme, "Center", theme.IconsTheme.Center))
-	right.AddChild(newMenuEntry(theme, "Reset", theme.IconsTheme.Zoom))
-
-	c.AddChild(left, newMenuBox(theme), center, newMenuBox(theme), right)
-
-	return c
+	return m
 }
 
-func newMenuEntry(theme *theme.Theme, label string, icon *widget.GraphicImage) *widget.Container {
+func (m *Menu) AddButton(pos MenuPos, label string, icon *widget.GraphicImage, on func()) {
+	box, ok := m.boxes[pos]
+	if !ok {
+		return
+	}
+
+	if on == nil {
+		on = func() {}
+	}
+
 	iconWidget := widget.NewGraphic(
 		widget.GraphicOpts.Image(icon.Idle),
 		widget.GraphicOpts.WidgetOpts(
@@ -51,7 +72,7 @@ func newMenuEntry(theme *theme.Theme, label string, icon *widget.GraphicImage) *
 	)
 
 	txtWidget := widget.NewText(
-		widget.TextOpts.Text(label, theme.MainMenuTheme.Font, theme.DefaultTextColor),
+		widget.TextOpts.Text(label, m.theme.MainMenuTheme.Font, m.theme.DefaultTextColor),
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
@@ -61,45 +82,55 @@ func newMenuEntry(theme *theme.Theme, label string, icon *widget.GraphicImage) *
 
 	var c *widget.Container
 	c = widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(theme.MainMenuTheme.ButtonImage.Idle),
+		widget.ContainerOpts.BackgroundImage(m.theme.MainMenuTheme.ButtonImage.Idle),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(theme.MainMenuTheme.IconSpacing),
-			widget.RowLayoutOpts.Padding(theme.MainMenuTheme.ButtonPadding),
+			widget.RowLayoutOpts.Spacing(m.theme.MainMenuTheme.IconSpacing),
+			widget.RowLayoutOpts.Padding(m.theme.MainMenuTheme.ButtonPadding),
 		)),
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.CursorEnterHandler(func(args *widget.WidgetCursorEnterEventArgs) {
 				iconWidget.Image = icon.Hover
-				c.SetBackgroundImage(theme.MainMenuTheme.ButtonImage.Hover)
+				c.SetBackgroundImage(m.theme.MainMenuTheme.ButtonImage.Hover)
 			}),
 			widget.WidgetOpts.CursorExitHandler(func(args *widget.WidgetCursorExitEventArgs) {
 				iconWidget.Image = icon.Idle
-				c.SetBackgroundImage(theme.MainMenuTheme.ButtonImage.Idle)
+				c.SetBackgroundImage(m.theme.MainMenuTheme.ButtonImage.Idle)
 			}),
 			widget.WidgetOpts.CursorHovered(input.CURSOR_POINTER),
+			widget.WidgetOpts.MouseButtonClickedHandler(func(args *widget.WidgetMouseButtonClickedEventArgs) {
+				if args.Button == ebiten.MouseButtonLeft {
+					on()
+				}
+			}),
 		),
 	)
 
 	c.AddChild(iconWidget)
 	c.AddChild(txtWidget)
 
-	return c
+	box.AddChild(c)
 }
 
-func newMenuIcon(icon *widget.GraphicImage) *widget.Graphic {
-	return widget.NewGraphic(
+func (m *Menu) AddIcon(pos MenuPos, icon *widget.GraphicImage) {
+	box, ok := m.boxes[pos]
+	if !ok {
+		return
+	}
+
+	box.AddChild(widget.NewGraphic(
 		widget.GraphicOpts.Image(icon.Idle),
 		widget.GraphicOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 			}),
 		),
-	)
+	))
 }
 
-func newMenuBox(theme *theme.Theme) *widget.Container {
+func (m *Menu) newBox() *widget.Container {
 	return widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(theme.PanelTheme.Spacing),
+			widget.RowLayoutOpts.Spacing(m.theme.PanelTheme.Spacing),
 		)),
 	)
 }

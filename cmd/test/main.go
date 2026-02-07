@@ -29,6 +29,23 @@ func main() {
 	menu := layout.NewMenu(theme)
 	lyt.AddChild(menu)
 
+	menu.AddIcon(layout.MenuPosLeft, theme.IconsTheme.Noise)
+	menu.AddButton(layout.MenuPosLeft, "Add", theme.IconsTheme.Add, nil)
+	menu.AddButton(layout.MenuPosLeft, "Clear", theme.IconsTheme.Delete, nil)
+
+	menu.AddIcon(layout.MenuPosCenter, theme.IconsTheme.File)
+	menu.AddButton(layout.MenuPosCenter, "Open", theme.IconsTheme.Open, nil)
+	menu.AddButton(layout.MenuPosCenter, "Save", theme.IconsTheme.Save, nil)
+
+	// CAMERA MENU
+	menu.AddIcon(layout.MenuPosRight, theme.IconsTheme.Camera)
+	menu.AddButton(layout.MenuPosRight, "Center", theme.IconsTheme.Center, func() {
+		cam.ByPassLock(func() { cam.MoveTo(0, 0) })
+	})
+	menu.AddButton(layout.MenuPosRight, "Reset", theme.IconsTheme.Zoom, func() {
+		cam.ByPassLock(func() { cam.SetZoom(1) })
+	})
+
 	// SPLIT PAN
 	split := widgets.NewSplit(theme)
 	lyt.AddChild(split)

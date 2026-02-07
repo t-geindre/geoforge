@@ -28,6 +28,7 @@ type Camera interface {
 	//Lock the camera position and zoom
 	Lock(bool)
 	Locked() bool
+	ByPassLock(func())
 	game.StateChanged
 }
 
@@ -175,4 +176,12 @@ func (c *camera) Lock(lock bool) {
 
 func (c *camera) Locked() bool {
 	return c.locked
+}
+
+func (c *camera) ByPassLock(on func()) {
+	if c.locked {
+		c.Lock(false)
+		defer c.Lock(true)
+	}
+	on()
 }
