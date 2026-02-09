@@ -17,31 +17,31 @@ func main() {
 	ebiten.MaximizeWindow()
 
 	// THEME AND LAYOUT
-	theme, err := theme.NewDefaultTheme()
+	th, err := theme.NewDefaultTheme()
 	if err != nil {
 		panic(err)
 	}
 	root := layout.NewRoot()
-	grid := layout.NewGrid(theme)
+	grid := layout.NewGrid(th)
 	root.AddChild(grid)
 
 	// NOISE SETUP
 	cam, wrld, rdr := noiseSetup()
 
 	// MAIN MENU
-	menu := layout.NewMenu(theme)
+	menu := layout.NewMenu(th)
 	grid.AddChild(menu)
 
-	menu.AddIcon(layout.MenuPosLeft, theme.IconsTheme.Noise)
-	menu.AddButton(layout.MenuPosLeft, "Add", theme.IconsTheme.Add, nil)
-	menu.AddButton(layout.MenuPosLeft, "Clear", theme.IconsTheme.Delete, nil)
+	menu.AddIcon(layout.MenuPosLeft, th.IconsTheme.NormalAccent[theme.IconNoise])
+	menu.AddButton(layout.MenuPosLeft, "Add", th.IconsTheme.Normal[theme.IconAdd], nil)
+	menu.AddButton(layout.MenuPosLeft, "Clear", th.IconsTheme.Normal[theme.IconDelete], nil)
 
-	menu.AddIcon(layout.MenuPosCenter, theme.IconsTheme.File)
-	menu.AddButton(layout.MenuPosCenter, "Open", theme.IconsTheme.Open, nil)
-	menu.AddButton(layout.MenuPosCenter, "Save", theme.IconsTheme.Save, nil)
+	menu.AddIcon(layout.MenuPosCenter, th.IconsTheme.NormalAccent[theme.IconFile])
+	menu.AddButton(layout.MenuPosCenter, "Open", th.IconsTheme.Normal[theme.IconOpen], nil)
+	menu.AddButton(layout.MenuPosCenter, "Save", th.IconsTheme.Normal[theme.IconSave], nil)
 
 	// SPLIT PAN
-	split := widgets.NewSplit(theme)
+	split := widgets.NewSplit(th)
 	grid.AddChild(split)
 
 	// DESKTOP (LEFT)
@@ -49,18 +49,18 @@ func main() {
 	split.AddChild(desktop)
 
 	// CONNECTORS
-	conn := widgets.NewConnections(theme, desktop)
+	conn := widgets.NewConnections(th, desktop)
 
 	// DRAGGABLES
 	for j := 0; j < 4; j++ {
-		icon := theme.IconsTheme.NoiseSmall
+		icon := th.IconsTheme.Small[theme.IconNoise]
 		title := "Noise " + string(rune('A'+j))
 		if j == 0 {
-			icon = theme.IconsTheme.CameraSmall
+			icon = th.IconsTheme.Small[theme.IconCamera]
 			title = "Renderer"
 		}
-		drag := widgets.NewDraggable(j*200, 50, theme, icon)
-		drag.AddChild(getGridForm(theme, conn))
+		drag := widgets.NewDraggable(j*200, 50, th, icon)
+		drag.AddChild(getGridForm(th, conn))
 		drag.SetTitle(title)
 		desktop.AddDraggable(drag)
 	}
@@ -97,24 +97,24 @@ func main() {
 	}
 
 	// CAMERA MENU
-	menu.AddIcon(layout.MenuPosRight, theme.IconsTheme.Camera)
-	menu.AddButton(layout.MenuPosRight, "Center", theme.IconsTheme.Center, func() {
+	menu.AddIcon(layout.MenuPosRight, th.IconsTheme.NormalAccent[theme.IconCamera])
+	menu.AddButton(layout.MenuPosRight, "Center", th.IconsTheme.Normal[theme.IconCenter], func() {
 		cam.ByPassLock(func() { cam.MoveTo(0, 0) })
 	})
-	menu.AddButton(layout.MenuPosRight, "Reset", theme.IconsTheme.Zoom, func() {
+	menu.AddButton(layout.MenuPosRight, "Reset", th.IconsTheme.Normal[theme.IconZoom], func() {
 		cam.ByPassLock(func() { cam.SetZoom(1) })
 	})
-	menu.AddButton(layout.MenuPosRight, "Full screen", theme.IconsTheme.Fullscreen, func() {
+	menu.AddButton(layout.MenuPosRight, "Full screen", th.IconsTheme.Normal[theme.IconFullscreen], func() {
 		toggleFS(true)
 	})
 
 	// STATUS
-	status := layout.NewStatus(theme, rdr, wrld, cam)
+	status := layout.NewStatus(th, rdr, wrld, cam)
 	grid.AddChild(status)
 
 	// UI
 	ui := &ebitenui.UI{Container: root}
-	ui.PrimaryTheme = theme.Theme
+	ui.PrimaryTheme = th.Theme
 
 	// UPDATES
 	updates := game.NewUpdateFunc(func() {

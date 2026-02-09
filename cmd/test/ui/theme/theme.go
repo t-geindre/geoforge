@@ -40,6 +40,10 @@ type IconsTheme struct {
 	StatsSmall  *widget.GraphicImage
 	Zoom        *widget.GraphicImage
 	ZoomSmall   *widget.GraphicImage
+
+	NormalAccent Icons
+	Normal       Icons
+	Small        Icons
 }
 
 type PanelTheme struct {

@@ -33,8 +33,8 @@ func NewSplitBar(t *theme.Theme, l *SplitLayout, c *widget.Container) *widget.Bu
 	b.Button = widget.NewButton(
 		widget.ButtonOpts.Image(&widget.ButtonImage{
 			Idle:    t.PanelTheme.ForegroundImage,
-			Hover:   t.PanelTheme.BackgroundImage,
-			Pressed: t.PanelTheme.ForegroundImage,
+			Hover:   t.ButtonTheme.Image.Hover,
+			Pressed: t.ButtonTheme.Image.Hover,
 		}),
 		widget.ButtonOpts.PressedHandler(b.DragStart),
 		widget.ButtonOpts.ReleasedHandler(func(*widget.ButtonReleasedEventArgs) { b.dragging = false }),

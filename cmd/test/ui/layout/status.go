@@ -11,43 +11,43 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewStatus(theme *theme.Theme, rdr *render.Renderer, wrld *world.World, cam camera.Camera) *widget.Container {
-	c := newStatusContainer(theme)
+func NewStatus(th *theme.Theme, rdr *render.Renderer, wrld *world.World, cam camera.Camera) *widget.Container {
+	c := newStatusContainer(th)
 
 	// LEFT
-	left := newStatusBox(theme)
+	left := newStatusBox(th)
 	c.AddChild(left)
 
-	left.AddChild(newStatusIcon(theme.IconsTheme.StatsSmall))
+	left.AddChild(newStatusIcon(th.IconsTheme.Small[theme.IconStats]))
 	left.AddChild(newUpdateText(func() string {
 		return fmt.Sprintf("TPS: %02.0f", ebiten.ActualTPS())
 	}, nil))
 
-	left.AddChild(newStatusIcon(theme.IconsTheme.StatsSmall))
+	left.AddChild(newStatusIcon(th.IconsTheme.Small[theme.IconStats]))
 	left.AddChild(newUpdateText(func() string {
 		return fmt.Sprintf("FPS: %02.0f", ebiten.ActualFPS())
 	}, nil))
 
 	// RIGHT
-	right := newStatusBox(theme)
+	right := newStatusBox(th)
 	c.AddChild(right)
 
 	// Camera position
-	right.AddChild(newStatusIcon(theme.IconsTheme.CameraSmall))
+	right.AddChild(newStatusIcon(th.IconsTheme.Small[theme.IconCamera]))
 	right.AddChild(newUpdateText(func() string {
 		cx, cy := cam.Position()
 		return fmt.Sprintf("%.0fx%.0f", cx, cy)
 	}, c))
 
 	// Camera zoom
-	right.AddChild(newStatusIcon(theme.IconsTheme.ZoomSmall))
+	right.AddChild(newStatusIcon(th.IconsTheme.Small[theme.IconZoom]))
 	right.AddChild(newUpdateText(func() string {
 		cz := cam.Zoom() * 100
 		return fmt.Sprintf("%.0f%%", cz)
 	}, c))
 
 	// Drawn chunks
-	right.AddChild(newStatusIcon(theme.IconsTheme.ChunkSmall))
+	right.AddChild(newStatusIcon(th.IconsTheme.Small[theme.IconChunk]))
 	right.AddChild(newUpdateText(func() string {
 		return fmt.Sprintf("%d / %d", rdr.DrawnChunks(), len(wrld.Chunks()))
 	}, c))
