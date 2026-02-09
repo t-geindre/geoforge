@@ -229,11 +229,12 @@ func NewDefaultTheme() (*Theme, error) {
 			Center:      &widget.GraphicImage{Idle: icons.Get(2, 0), Hover: iconsGreen.Get(2, 0)},
 			Delete:      &widget.GraphicImage{Idle: icons.Get(3, 0), Hover: iconsBlue.Get(3, 0)},
 			File:        &widget.GraphicImage{Idle: iconsOrange.Get(4, 0)},
-			Noise:       &widget.GraphicImage{Idle: iconsBlue.Get(6, 0)},
-			NoiseSmall:  &widget.GraphicImage{Idle: iconsBlueSmall.Get(6, 0)},
-			Open:        &widget.GraphicImage{Idle: icons.Get(7, 0), Hover: iconsOrange.Get(7, 0)},
-			Save:        &widget.GraphicImage{Idle: icons.Get(0, 1), Hover: iconsOrange.Get(0, 1)},
-			Zoom:        &widget.GraphicImage{Idle: icons.Get(1, 1), Hover: iconsGreen.Get(1, 1)},
+			Fullscreen:  &widget.GraphicImage{Idle: icons.Get(5, 0), Hover: iconsGreen.Get(5, 0)},
+			Noise:       &widget.GraphicImage{Idle: iconsBlue.Get(7, 0)},
+			NoiseSmall:  &widget.GraphicImage{Idle: iconsBlueSmall.Get(7, 0)},
+			Open:        &widget.GraphicImage{Idle: icons.Get(0, 1), Hover: iconsOrange.Get(0, 1)},
+			Save:        &widget.GraphicImage{Idle: icons.Get(1, 1), Hover: iconsOrange.Get(1, 1)},
+			Zoom:        &widget.GraphicImage{Idle: icons.Get(2, 1), Hover: iconsGreen.Get(2, 1)},
 		},
 		MainMenuTheme: &MainMenuTheme{
 			ButtonImage: &widget.ButtonImage{

@@ -31,6 +31,7 @@ type IconsTheme struct {
 	Center      *widget.GraphicImage
 	Delete      *widget.GraphicImage
 	File        *widget.GraphicImage
+	Fullscreen  *widget.GraphicImage
 	Noise       *widget.GraphicImage
 	NoiseSmall  *widget.GraphicImage
 	Open        *widget.GraphicImage

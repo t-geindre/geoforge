@@ -39,7 +39,6 @@ func NewConnector(theme *theme2.Theme, dir ConDirection) *Connector {
 				c.highlight = false
 			}),
 			widget.WidgetOpts.CursorHovered(input.CURSOR_POINTER),
-			widget.WidgetOpts.CursorPressed(input.CURSOR_POINTER),
 		),
 		dir:   dir,
 		theme: theme,

@@ -23,6 +23,7 @@ type Connections struct {
 	connectors   []*Connector
 	cables       []*cable
 	theme        *theme2.Theme
+	visible      bool
 }
 
 func NewConnections(t *theme2.Theme, c widget.HasWidget) *Connections {
@@ -32,6 +33,7 @@ func NewConnections(t *theme2.Theme, c widget.HasWidget) *Connections {
 		cables:       []*cable{},
 		connectors:   []*Connector{},
 		theme:        t,
+		visible:      true,
 	}
 }
 
@@ -152,6 +154,10 @@ func (c *Connections) DragEnds(conn *Connector) {
 }
 
 func (c *Connections) Draw(screen *ebiten.Image) {
+	if !c.visible {
+		return
+	}
+
 	dst := screen.SubImage(c.container.GetWidget().Rect).(*ebiten.Image)
 	for _, cl := range c.cables {
 		c.DrawCable(dst, cl.from.center, cl.to.center, c.theme.ConnectionsTheme.CableColor)
@@ -204,4 +210,8 @@ func (c *Connections) isValidTarget(from, to *Connector) bool {
 	}
 
 	return false
+}
+
+func (c *Connections) SetVisible(v bool) {
+	c.visible = v
 }

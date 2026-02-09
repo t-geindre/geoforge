@@ -12,14 +12,14 @@ import (
 type Preview struct {
 	cam      camera.Camera
 	renderer *render.Renderer
-	widget   *widget.Widget
+	*widget.Widget
 }
 
 func NewPreview(cam camera.Camera, rdr *render.Renderer) *Preview {
 	return &Preview{
 		cam:      cam,
 		renderer: rdr,
-		widget: widget.NewWidget(
+		Widget: widget.NewWidget(
 			widget.WidgetOpts.CursorEnterHandler(func(args *widget.WidgetCursorEnterEventArgs) {
 				cam.Lock(false)
 			}),
@@ -35,7 +35,7 @@ func (p *Preview) Render(screen *ebiten.Image) {
 }
 
 func (p *Preview) GetWidget() *widget.Widget {
-	return p.widget
+	return p.Widget
 }
 
 func (p *Preview) PreferredSize() (int, int) {
@@ -45,12 +45,12 @@ func (p *Preview) PreferredSize() (int, int) {
 func (p *Preview) SetLocation(rect image.Rectangle) {
 	p.cam.ScreenMoveTo(rect.Min.X, rect.Min.Y)
 	p.cam.SetViewport(rect.Dx(), rect.Dy())
-	p.widget.Rect = rect
+	p.Widget.Rect = rect
 }
 
 func (p *Preview) Validate() {
 }
 
 func (p *Preview) Update(updObj *widget.UpdateObject) {
-	p.widget.Update(updObj)
+	p.Widget.Update(updObj)
 }

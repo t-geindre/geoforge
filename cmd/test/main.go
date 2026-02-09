@@ -8,6 +8,7 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 func main() {
@@ -20,14 +21,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	lyt := layout.NewLayout(theme)
+	root := layout.NewRoot()
+	grid := layout.NewGrid(theme)
+	root.AddChild(grid)
 
 	// NOISE SETUP
 	cam, wrld, rdr := noiseSetup()
 
 	// MAIN MENU
 	menu := layout.NewMenu(theme)
-	lyt.AddChild(menu)
+	grid.AddChild(menu)
 
 	menu.AddIcon(layout.MenuPosLeft, theme.IconsTheme.Noise)
 	menu.AddButton(layout.MenuPosLeft, "Add", theme.IconsTheme.Add, nil)
@@ -37,18 +40,9 @@ func main() {
 	menu.AddButton(layout.MenuPosCenter, "Open", theme.IconsTheme.Open, nil)
 	menu.AddButton(layout.MenuPosCenter, "Save", theme.IconsTheme.Save, nil)
 
-	// CAMERA MENU
-	menu.AddIcon(layout.MenuPosRight, theme.IconsTheme.Camera)
-	menu.AddButton(layout.MenuPosRight, "Center", theme.IconsTheme.Center, func() {
-		cam.ByPassLock(func() { cam.MoveTo(0, 0) })
-	})
-	menu.AddButton(layout.MenuPosRight, "Reset", theme.IconsTheme.Zoom, func() {
-		cam.ByPassLock(func() { cam.SetZoom(1) })
-	})
-
 	// SPLIT PAN
 	split := widgets.NewSplit(theme)
-	lyt.AddChild(split)
+	grid.AddChild(split)
 
 	// DESKTOP (LEFT)
 	desktop := widgets.NewDesktop(1000, 1000)
@@ -72,14 +66,54 @@ func main() {
 	}
 
 	// NOISE PREVIEW (RIGHT)
-	split.AddChild(widgets.NewPreview(cam, rdr))
+	preview := widgets.NewPreview(cam, rdr)
+	split.AddChild(preview)
+
+	// NOISE PREVIEW (TOGGLE FS)
+	toggleFS := func(fs bool) {
+		if fs {
+			root.RemoveChild(grid)
+			root.AddChild(preview)
+			conn.SetVisible(false)
+			ebiten.SetFullscreen(true)
+		} else {
+			root.RemoveChild(preview)
+			root.AddChild(grid)
+			conn.SetVisible(true)
+			ebiten.SetFullscreen(false)
+		}
+	}
+
+	fsKeysListener := func() {
+		if ebiten.IsFullscreen() {
+			if inpututil.IsKeyJustPressed(ebiten.KeyEscape) || inpututil.IsKeyJustPressed(ebiten.KeyF11) {
+				toggleFS(false)
+			}
+		} else {
+			if inpututil.IsKeyJustPressed(ebiten.KeyF11) {
+				toggleFS(true)
+			}
+		}
+	}
+
+	// CAMERA MENU
+	menu.AddIcon(layout.MenuPosRight, theme.IconsTheme.Camera)
+	menu.AddButton(layout.MenuPosRight, "Center", theme.IconsTheme.Center, func() {
+		cam.ByPassLock(func() { cam.MoveTo(0, 0) })
+	})
+	menu.AddButton(layout.MenuPosRight, "Reset", theme.IconsTheme.Zoom, func() {
+		cam.ByPassLock(func() { cam.SetZoom(1) })
+	})
+	menu.AddButton(layout.MenuPosRight, "Full screen", theme.IconsTheme.Fullscreen, func() {
+		toggleFS(true)
+	})
 
 	// STATUS
 	status := layout.NewStatus(theme, rdr, wrld, cam)
-	lyt.AddChild(status)
+	grid.AddChild(status)
 
 	// UI
-	ui := &ebitenui.UI{Container: lyt.Container}
+	ui := &ebitenui.UI{Container: root}
 	ui.PrimaryTheme = theme.Theme
 
 	// UPDATES
@@ -89,6 +123,7 @@ func main() {
 		rdr.Update()
 		ui.Update()
 		conn.Update()
+		fsKeysListener()
 	})
 
 	// DRAWS
