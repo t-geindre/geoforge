@@ -29,6 +29,7 @@ type IconsTheme struct {
 	Camera      *widget.GraphicImage
 	CameraSmall *widget.GraphicImage
 	Center      *widget.GraphicImage
+	ChunkSmall  *widget.GraphicImage
 	Delete      *widget.GraphicImage
 	File        *widget.GraphicImage
 	Fullscreen  *widget.GraphicImage
@@ -36,7 +37,9 @@ type IconsTheme struct {
 	NoiseSmall  *widget.GraphicImage
 	Open        *widget.GraphicImage
 	Save        *widget.GraphicImage
+	StatsSmall  *widget.GraphicImage
 	Zoom        *widget.GraphicImage
+	ZoomSmall   *widget.GraphicImage
 }
 
 type PanelTheme struct {

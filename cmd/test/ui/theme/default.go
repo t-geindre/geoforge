@@ -38,6 +38,7 @@ func NewDefaultTheme() (*Theme, error) {
 	iconsBlue := icons.Colorize(blue)
 	iconsGreen := icons.Colorize(green)
 
+	iconsOrangeSmall := iconsOrange.Scale(.6)
 	iconsBlueSmall := iconsBlue.Scale(.6)
 	iconsGreenSmall := iconsGreen.Scale(.6)
 
@@ -227,14 +228,17 @@ func NewDefaultTheme() (*Theme, error) {
 			Camera:      &widget.GraphicImage{Idle: iconsGreen.Get(1, 0)},
 			CameraSmall: &widget.GraphicImage{Idle: iconsGreenSmall.Get(1, 0)},
 			Center:      &widget.GraphicImage{Idle: icons.Get(2, 0), Hover: iconsGreen.Get(2, 0)},
-			Delete:      &widget.GraphicImage{Idle: icons.Get(3, 0), Hover: iconsBlue.Get(3, 0)},
-			File:        &widget.GraphicImage{Idle: iconsOrange.Get(4, 0)},
-			Fullscreen:  &widget.GraphicImage{Idle: icons.Get(5, 0), Hover: iconsGreen.Get(5, 0)},
-			Noise:       &widget.GraphicImage{Idle: iconsBlue.Get(7, 0)},
-			NoiseSmall:  &widget.GraphicImage{Idle: iconsBlueSmall.Get(7, 0)},
-			Open:        &widget.GraphicImage{Idle: icons.Get(0, 1), Hover: iconsOrange.Get(0, 1)},
-			Save:        &widget.GraphicImage{Idle: icons.Get(1, 1), Hover: iconsOrange.Get(1, 1)},
-			Zoom:        &widget.GraphicImage{Idle: icons.Get(2, 1), Hover: iconsGreen.Get(2, 1)},
+			ChunkSmall:  &widget.GraphicImage{Idle: iconsBlueSmall.Get(3, 0)},
+			Delete:      &widget.GraphicImage{Idle: icons.Get(4, 0), Hover: iconsBlue.Get(4, 0)},
+			File:        &widget.GraphicImage{Idle: iconsOrange.Get(5, 0)},
+			Fullscreen:  &widget.GraphicImage{Idle: icons.Get(6, 0), Hover: iconsGreen.Get(6, 0)},
+			Noise:       &widget.GraphicImage{Idle: iconsBlue.Get(0, 1)},
+			NoiseSmall:  &widget.GraphicImage{Idle: iconsBlueSmall.Get(0, 1)},
+			Open:        &widget.GraphicImage{Idle: icons.Get(1, 1), Hover: iconsOrange.Get(1, 1)},
+			Save:        &widget.GraphicImage{Idle: icons.Get(2, 1), Hover: iconsOrange.Get(2, 1)},
+			StatsSmall:  &widget.GraphicImage{Idle: iconsOrangeSmall.Get(3, 1)},
+			Zoom:        &widget.GraphicImage{Idle: icons.Get(4, 1), Hover: iconsGreen.Get(4, 1)},
+			ZoomSmall:   &widget.GraphicImage{Idle: iconsGreenSmall.Get(4, 1)},
 		},
 		MainMenuTheme: &MainMenuTheme{
 			ButtonImage: &widget.ButtonImage{

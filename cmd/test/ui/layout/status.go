@@ -12,7 +12,51 @@ import (
 )
 
 func NewStatus(theme *theme.Theme, rdr *render.Renderer, wrld *world.World, cam camera.Camera) *widget.Container {
-	c := widget.NewContainer(
+	c := newStatusContainer(theme)
+
+	// LEFT
+	left := newStatusBox(theme)
+	c.AddChild(left)
+
+	left.AddChild(newStatusIcon(theme.IconsTheme.StatsSmall))
+	left.AddChild(newUpdateText(func() string {
+		return fmt.Sprintf("TPS: %02.0f", ebiten.ActualTPS())
+	}, nil))
+
+	left.AddChild(newStatusIcon(theme.IconsTheme.StatsSmall))
+	left.AddChild(newUpdateText(func() string {
+		return fmt.Sprintf("FPS: %02.0f", ebiten.ActualFPS())
+	}, nil))
+
+	// RIGHT
+	right := newStatusBox(theme)
+	c.AddChild(right)
+
+	// Camera position
+	right.AddChild(newStatusIcon(theme.IconsTheme.CameraSmall))
+	right.AddChild(newUpdateText(func() string {
+		cx, cy := cam.Position()
+		return fmt.Sprintf("%.0fx%.0f", cx, cy)
+	}, c))
+
+	// Camera zoom
+	right.AddChild(newStatusIcon(theme.IconsTheme.ZoomSmall))
+	right.AddChild(newUpdateText(func() string {
+		cz := cam.Zoom() * 100
+		return fmt.Sprintf("%.0f%%", cz)
+	}, c))
+
+	// Drawn chunks
+	right.AddChild(newStatusIcon(theme.IconsTheme.ChunkSmall))
+	right.AddChild(newUpdateText(func() string {
+		return fmt.Sprintf("%d / %d", rdr.DrawnChunks(), len(wrld.Chunks()))
+	}, c))
+
+	return c
+}
+
+func newStatusContainer(theme *theme.Theme) *widget.Container {
+	return widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(theme.PanelTheme.ForegroundImage),
 		widget.ContainerOpts.WidgetOpts(),
 		widget.ContainerOpts.Layout(
@@ -23,37 +67,35 @@ func NewStatus(theme *theme.Theme, rdr *render.Renderer, wrld *world.World, cam 
 			),
 		),
 	)
+}
 
-	var right *widget.Text
-	right = widget.NewText(
+func newStatusBox(theme *theme.Theme) *widget.Container {
+	return widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(theme.PanelTheme.Spacing),
+		)),
+	)
+}
+
+func newUpdateText(upd func() string, parent *widget.Container) *widget.Text {
+	return widget.NewText(
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.OnUpdate(func(w widget.HasWidget) {
-				cx, cy := cam.Position()
-				cz := cam.Zoom() * 100
-				str := fmt.Sprintf(
-					"Cam: %.0f X %.0f - %.0f%%  |  Chunks: %d / %d",
-					cx, cy, cz,
-					rdr.DrawnChunks(), len(wrld.Chunks()),
-				)
-				if str != right.Label {
-					right.Label = str
-					c.RequestRelayout()
+				wdg := w.(*widget.Text)
+				str := upd()
+				if str != wdg.Label {
+					wdg.Label = str
+					if parent != nil {
+						parent.RequestRelayout()
+					}
 				}
 			}),
 		),
 	)
+}
 
-	var left *widget.Text
-	left = widget.NewText(
-		widget.TextOpts.WidgetOpts(
-			widget.WidgetOpts.OnUpdate(func(w widget.HasWidget) {
-				left.Label = fmt.Sprintf("TPS: %02.0f  |  FPS: %02.0f", ebiten.ActualTPS(), ebiten.ActualFPS())
-			}),
-		),
+func newStatusIcon(i *widget.GraphicImage) *widget.Graphic {
+	return widget.NewGraphic(
+		widget.GraphicOpts.Image(i.Idle),
 	)
-
-	c.AddChild(left)
-	c.AddChild(right)
-
-	return c
 }
